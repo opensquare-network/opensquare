@@ -6,8 +6,8 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opensquare_runtime::{self, AccountId, OracleId, Signature};
 use opensquare_runtime::{
-    AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, SudoConfig,
-    SystemConfig, WASM_BINARY,
+    AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, OsSystemConfig,
+    SudoConfig, SystemConfig, TokensConfig, WASM_BINARY,
 };
 
 // The URL for the telemetry server.
@@ -167,11 +167,17 @@ fn testnet_genesis(
         }),
         pallet_sudo: Some(SudoConfig {
             // Assign network admin rights.
-            key: root_key,
+            key: root_key.clone(),
         }),
         orml_oracle: Some(OracleConfig {
             members: Default::default(), // initialized by OperatorMembership
             session_keys: oracle_session_keys,
+        }),
+        orml_tokens: Some(TokensConfig {
+            endowed_accounts: vec![],
+        }),
+        ospallet_system: Some(OsSystemConfig {
+            tmp_council: vec![root_key],
         }),
     }
 }

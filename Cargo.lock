@@ -1619,6 +1619,12 @@ dependencies = [
 
 [[package]]
 name = "hex"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
+
+[[package]]
+name = "hex"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
@@ -1640,6 +1646,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "853f769599eb31de176303197b7ba4973299c38c7a7604a6bc88c3eef05b9b46"
 dependencies = [
  "proc-macro-hack",
+]
+
+[[package]]
+name = "hex-serde"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3486d7bc9e52c4c5fc1856ae8a5e4ab41d2499fc20bbc44492e244e8bf1b7012"
+dependencies = [
+ "hex 0.3.2",
+ "serde",
 ]
 
 [[package]]
@@ -3032,6 +3048,8 @@ dependencies = [
  "orml-currencies",
  "orml-oracle",
  "orml-tokens",
+ "ospallet-bounties",
+ "ospallet-system",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -3148,6 +3166,45 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "ospallet-bounties"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "opensquare-primitives",
+ "ospallet-support",
+ "parity-scale-codec",
+ "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "ospallet-support"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "hex 0.4.2",
+ "hex-serde",
+ "parity-scale-codec",
+ "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "ospallet-system"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]
@@ -3813,7 +3870,7 @@ dependencies = [
  "bitflags",
  "byteorder",
  "chrono",
- "hex",
+ "hex 0.4.2",
  "lazy_static",
  "libc",
  "libflate",
@@ -4791,7 +4848,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71c06f5d0016f69d61f2fb01dbb980d875a358d7b0d054efdbaab8b4d2d99ab0"
 dependencies = [
  "derive_more",
- "hex",
+ "hex 0.4.2",
  "merlin",
  "parking_lot 0.10.2",
  "rand 0.7.3",
@@ -4838,7 +4895,7 @@ dependencies = [
  "futures 0.3.5",
  "futures-timer 3.0.2",
  "futures_codec",
- "hex",
+ "hex 0.4.2",
  "ip_network",
  "libp2p",
  "linked-hash-map",
@@ -5715,7 +5772,7 @@ dependencies = [
  "futures 0.3.5",
  "hash-db",
  "hash256-std-hasher",
- "hex",
+ "hex 0.4.2",
  "impl-serde 0.3.1",
  "lazy_static",
  "libsecp256k1",

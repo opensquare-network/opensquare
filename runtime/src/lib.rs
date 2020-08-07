@@ -25,6 +25,7 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_system::{EnsureOneOf, EnsureRoot};
 use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
 
 // orml
@@ -55,6 +56,7 @@ pub use opensquare_primitives::{
 
 pub mod constants;
 pub use constants::{currency::*, time::*};
+
 impl_opaque_keys! {
     pub struct SessionKeys {
         pub aura: Aura,
@@ -258,6 +260,12 @@ impl orml_oracle::Trait for Runtime {
     type AuthorityId = orml_oracle::AuthorityId;
 }
 
+type EnsureRootOrHalfGeneralCouncil = EnsureOneOf<AccountId, EnsureRoot<AccountId>, OsSystem>;
+
+impl ospallet_system::Trait for Runtime {
+    type Event = Event;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -278,6 +286,8 @@ construct_runtime!(
         Currencies: orml_currencies::{Module, Call, Event<T>},
         Tokens: orml_tokens::{Module, Storage, Event<T>, Config<T>},
         Oracle: orml_oracle::{Module, Storage, Call, Config<T>, Event<T>, ValidateUnsigned},
+
+        OsSystem: ospallet_system::{Module, Call, Config<T>, Storage, Event<T>},
     }
 );
 
