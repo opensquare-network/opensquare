@@ -4,8 +4,9 @@ use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
+use opensquare_runtime::{self, AccountId, OracleId, Signature};
 use opensquare_runtime::{
-    AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
+    AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, SudoConfig,
     SystemConfig, WASM_BINARY,
 };
 
@@ -37,6 +38,13 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
     (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
 }
 
+pub fn get_oracle_keys_from_seed(seed: &str) -> (AccountId, OracleId) {
+    (
+        get_account_id_from_seed::<sr25519::Public>(seed),
+        get_from_seed::<OracleId>(seed),
+    )
+}
+
 pub fn development_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
@@ -60,7 +68,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
                 ],
-                true,
+                vec![get_oracle_keys_from_seed("Alice")],
             )
         },
         // Bootnodes
@@ -110,7 +118,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
-                true,
+                vec![get_oracle_keys_from_seed("Alice")],
             )
         },
         // Bootnodes
@@ -132,7 +140,7 @@ fn testnet_genesis(
     initial_authorities: Vec<(AuraId, GrandpaId)>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
-    _enable_println: bool,
+    oracle_session_keys: Vec<(AccountId, OracleId)>,
 ) -> GenesisConfig {
     GenesisConfig {
         frame_system: Some(SystemConfig {
@@ -160,6 +168,10 @@ fn testnet_genesis(
         pallet_sudo: Some(SudoConfig {
             // Assign network admin rights.
             key: root_key,
+        }),
+        orml_oracle: Some(OracleConfig {
+            members: Default::default(), // initialized by OperatorMembership
+            session_keys: oracle_session_keys,
         }),
     }
 }
