@@ -1,10 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod currency;
+
 use sp_runtime::{
     generic,
     traits::{BlakeTwo256, IdentifyAccount, Verify},
-    MultiSignature, OpaqueExtrinsic,
+    FixedU128, MultiSignature, OpaqueExtrinsic,
 };
+
+pub use crate::currency::*;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -47,6 +51,11 @@ pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 
 /// Block ID.
 pub type BlockId = generic::BlockId<Block>;
+
+/// Signed version of Balance
+pub type Amount = i128;
+
+pub type Price = FixedU128;
 
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this

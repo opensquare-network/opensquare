@@ -11,7 +11,7 @@ use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentityLookup, NumberFor, Saturating};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
-    transaction_validity::{TransactionSource, TransactionValidity},
+    transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
     ApplyExtrinsicResult,
 };
 use sp_std::prelude::*;
@@ -26,6 +26,10 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
+
+// orml
+use orml_currencies::BasicCurrencyAdapter;
+pub use orml_oracle::AuthorityId as OracleId;
 
 // A few exports that help ease life for downstream crates.
 #[cfg(any(feature = "std", test))]
@@ -45,7 +49,8 @@ pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
 
 pub use opensquare_primitives::{
-    AccountId, AccountIndex, Balance, BlockNumber, Hash, Index, Moment, Signature,
+    AccountId, AccountIndex, Amount, Balance, BlockNumber, CurrencyId, Hash, Index, Moment, Price,
+    Signature,
 };
 
 pub mod constants;
@@ -215,6 +220,44 @@ impl pallet_sudo::Trait for Runtime {
     type Call = Call;
 }
 
+parameter_types! {
+    pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
+    pub const GetStableCurrencyId: CurrencyId = CurrencyId::USDT;
+}
+
+impl orml_currencies::Trait for Runtime {
+    type Event = Event;
+    type MultiCurrency = Tokens;
+    type NativeCurrency = BasicCurrencyAdapter<Balances, Balance, Balance, Amount, BlockNumber>;
+    type GetNativeCurrencyId = GetNativeCurrencyId;
+}
+
+// orml
+impl orml_tokens::Trait for Runtime {
+    type Event = Event;
+    type Balance = Balance;
+    type Amount = Amount;
+    type CurrencyId = CurrencyId;
+    type OnReceived = ();
+}
+
+parameter_types! {
+    pub const MinimumCount: u32 = 1;
+    pub const ExpiresIn: Moment = 1000 * 60 * 60; // 60 mins
+    pub const OracleUnsignedPriority: TransactionPriority = TransactionPriority::max_value() - 10000;
+}
+
+impl orml_oracle::Trait for Runtime {
+    type Event = Event;
+    type OnNewData = ();
+    type CombineData = orml_oracle::DefaultCombineData<Runtime, MinimumCount, ExpiresIn>;
+    type Time = Timestamp;
+    type OracleKey = CurrencyId;
+    type OracleValue = Price;
+    type UnsignedPriority = OracleUnsignedPriority;
+    type AuthorityId = orml_oracle::AuthorityId;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -227,9 +270,14 @@ construct_runtime!(
         Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
         Aura: pallet_aura::{Module, Config<T>, Inherent},
         Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
-        Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+        Balances: pallet_balances::{Module, Storage, Config<T>, Event<T>},
         TransactionPayment: pallet_transaction_payment::{Module, Storage},
         Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+
+        // oracle
+        Currencies: orml_currencies::{Module, Call, Event<T>},
+        Tokens: orml_tokens::{Module, Storage, Event<T>, Config<T>},
+        Oracle: orml_oracle::{Module, Storage, Call, Config<T>, Event<T>, ValidateUnsigned},
     }
 );
 
