@@ -68,6 +68,12 @@ decl_error! {
         Existed,
         InvalidBounty,
         InvalidState,
+        /// beyond limit of max hunters
+        TooManyHunters,
+        /// beyond limit of max hunted bounties
+        TooManyHuntedBounties,
+        /// this hunter already hunt this bounty
+        AlreadyHunted,
     }
 }
 decl_event!(
@@ -77,6 +83,9 @@ decl_event!(
         CreateBounty(AccountId, BountyId),
         Apply(BountyId),
         Approve(BountyId),
+        Accept(BountyId),
+        Reject(BountyId),
+        HuntBounty(BountyId, AccountId),
     }
 );
 decl_storage! {
@@ -89,6 +98,13 @@ decl_storage! {
             T::AccountId => Vec<BountyId>;
         /// Bounty state of a bounty_id
         pub BountyStateOf get(fn bounty_state_of): map hasher(identity) BountyId => BountyState;
+
+        pub HuntersFor get(fn hunters_for): map hasher(identity) BountyId => Vec<T::AccountId>;
+        pub HuntedBountiesFor get(fn hunted_bounties_for): map hasher(blake2_128_concat)
+            T::AccountId => Vec<BountyId>;
+
+        pub MaxHunters get(fn max_hunters): u32 = 10;
+        pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
     }
 }
 
@@ -108,6 +124,19 @@ decl_module! {
             let who = ensure_signed(origin)?;
             Self::apply_bounty_impl(who, bounty_id)?;
             Ok(())
+        }
+
+        #[weight = 0]
+        fn review_bounty(origin, bounty_id: BountyId, accepted: bool) -> DispatchResult {
+            T::CouncilOrigin::ensure_origin(origin)?;
+            Self::review_bounty_impl(bounty_id, accepted)?;
+            Ok(())
+        }
+
+        #[weight = 0]
+        fn hunt_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            Self::hunt_bounty_impl(bounty_id, who)
         }
     }
 }
@@ -153,6 +182,43 @@ impl<T: Trait> Module<T> {
 
         BountyStateOf::insert(bounty_id, BountyState::Applying);
         Self::deposit_event(RawEvent::Apply(bounty_id));
+        Ok(())
+    }
+    fn review_bounty_impl(bounty_id: BountyId, accepted: bool) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Applying,
+            Error::<T>::InvalidState
+        );
+        if accepted {
+            BountyStateOf::insert(bounty_id, BountyState::Accepted);
+            Self::deposit_event(RawEvent::Accept(bounty_id));
+        } else {
+            BountyStateOf::insert(bounty_id, BountyState::Rejected);
+            Self::deposit_event(RawEvent::Reject(bounty_id));
+        }
+        Ok(())
+    }
+    fn hunt_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Accepted,
+            Error::<T>::InvalidState
+        );
+        ensure!(
+            Self::hunted_bounties_for(&hunter).len() as u32 <= Self::max_holding_bounties(),
+            Error::<T>::TooManyHuntedBounties
+        );
+
+        HuntersFor::<T>::try_mutate(bounty_id, |list| -> DispatchResult {
+            if list.len() as u32 > Self::max_hunters() {
+                Err(Error::<T>::TooManyHunters)?
+            }
+            if list.contains(&hunter) {
+                Err(Error::<T>::AlreadyHunted)?
+            }
+            list.push(hunter.clone());
+            Ok(())
+        })?;
+        Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
         Ok(())
     }
 }
