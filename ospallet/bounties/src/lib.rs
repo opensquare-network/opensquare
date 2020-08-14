@@ -9,7 +9,7 @@ use frame_support::{
     traits::EnsureOrigin,
 };
 use frame_system::ensure_signed;
-use sp_runtime::traits::{BlakeTwo256, Hash, SaturatedConversion};
+use sp_runtime::traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup};
 use sp_std::{marker::PhantomData, prelude::*, result};
 
 // orml
@@ -68,12 +68,13 @@ decl_error! {
         Existed,
         InvalidBounty,
         InvalidState,
-        /// beyond limit of max hunters
-        TooManyHunters,
+        NotFunder,
         /// beyond limit of max hunted bounties
         TooManyHuntedBounties,
         /// this hunter already hunt this bounty
         AlreadyHunted,
+        /// not hunter for this bounty
+        NotHunter,
     }
 }
 decl_event!(
@@ -86,6 +87,7 @@ decl_event!(
         Accept(BountyId),
         Reject(BountyId),
         HuntBounty(BountyId, AccountId),
+        AssignBounty(BountyId, AccountId),
     }
 );
 decl_storage! {
@@ -99,11 +101,14 @@ decl_storage! {
         /// Bounty state of a bounty_id
         pub BountyStateOf get(fn bounty_state_of): map hasher(identity) BountyId => BountyState;
 
-        pub HuntersFor get(fn hunters_for): map hasher(identity) BountyId => Vec<T::AccountId>;
+        pub HuntersFor get(fn hunters_for):
+            double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => Option<()>;
         pub HuntedBountiesFor get(fn hunted_bounties_for): map hasher(blake2_128_concat)
             T::AccountId => Vec<BountyId>;
 
-        pub MaxHunters get(fn max_hunters): u32 = 10;
+        // todo, may use struct instead of tuple
+        pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => Option<(T::AccountId, T::BlockNumber)>;
+
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
     }
 }
@@ -138,6 +143,13 @@ decl_module! {
             let who = ensure_signed(origin)?;
             Self::hunt_bounty_impl(bounty_id, who)
         }
+
+        #[weight = 0]
+        fn assign_bounty(origin, bounty_id: BountyId, assign_to: <T::Lookup as StaticLookup>::Source) -> DispatchResult {
+            let funder = ensure_signed(origin)?;
+            let assign_to = T::Lookup::lookup(assign_to)?;
+            Self::assign_bounty_impl(bounty_id, funder, assign_to)
+        }
     }
 }
 
@@ -150,7 +162,7 @@ impl<T: Trait> Module<T> {
         match bounty {
             Bounty::V1(ref metadata) => {
                 if metadata.owner != *caller {
-                    Err(Error::<T>::InvalidBounty)?
+                    Err(Error::<T>::NotFunder)?
                 }
             }
         }
@@ -208,17 +220,26 @@ impl<T: Trait> Module<T> {
             Error::<T>::TooManyHuntedBounties
         );
 
-        HuntersFor::<T>::try_mutate(bounty_id, |list| -> DispatchResult {
-            if list.len() as u32 > Self::max_hunters() {
-                Err(Error::<T>::TooManyHunters)?
-            }
-            if list.contains(&hunter) {
-                Err(Error::<T>::AlreadyHunted)?
-            }
-            list.push(hunter.clone());
-            Ok(())
-        })?;
+        ensure!(Self::hunters_for(bounty_id, &hunter).is_none(), Error::<T>::AlreadyHunted);
+        HuntersFor::<T>::insert(bounty_id, &hunter, ());
+
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
+        Ok(())
+    }
+    fn assign_bounty_impl(bounty_id: BountyId, funder: T::AccountId, hunter: T::AccountId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Accepted,
+            Error::<T>::InvalidState
+        );
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_caller(&funder, &bounty)?;
+        ensure!(Self::hunters_for(bounty_id, &hunter).is_some(), Error::<T>::NotHunter);
+
+
+        HuntedBounties::<T>::insert(bounty_id, (hunter.clone(), frame_system::Module::<T>::block_number()));
+
+        BountyStateOf::insert(bounty_id, BountyState::Assigned);
+        Self::deposit_event(RawEvent::AssignBounty(bounty_id, hunter));
         Ok(())
     }
 }
