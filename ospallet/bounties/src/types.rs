@@ -24,7 +24,7 @@ pub enum BountyState {
     Applying,
     Accepted,
     Rejected,
-    Idle,
+    // Idle,
     Assigned,
     Outdated,
     Reviewing,

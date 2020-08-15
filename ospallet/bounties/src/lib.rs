@@ -67,6 +67,7 @@ decl_error! {
         NotExisted,
         Existed,
         InvalidBounty,
+        ValidBounty,
         InvalidState,
         NotFunder,
         /// beyond limit of max hunted bounties
@@ -75,6 +76,7 @@ decl_error! {
         AlreadyHunted,
         /// not hunter for this bounty
         NotHunter,
+
     }
 }
 decl_event!(
@@ -88,6 +90,7 @@ decl_event!(
         Reject(BountyId),
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
+        OutdateBounty(BountyId),
     }
 );
 decl_storage! {
@@ -101,15 +104,18 @@ decl_storage! {
         /// Bounty state of a bounty_id
         pub BountyStateOf get(fn bounty_state_of): map hasher(identity) BountyId => BountyState;
 
+        pub ApprovedHeight get(fn approved_height): map hasher(identity) BountyId => T::BlockNumber;
+
         pub HuntersFor get(fn hunters_for):
             double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => Option<()>;
         pub HuntedBountiesFor get(fn hunted_bounties_for): map hasher(blake2_128_concat)
             T::AccountId => Vec<BountyId>;
 
         // todo, may use struct instead of tuple
-        pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => Option<(T::AccountId, T::BlockNumber)>;
+        pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => Option<T::AccountId>;
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
+        pub OutdatedHeight get(fn outdated_height): T::BlockNumber = 1000.saturated_into();
     }
 }
 
@@ -149,6 +155,11 @@ decl_module! {
             let funder = ensure_signed(origin)?;
             let assign_to = T::Lookup::lookup(assign_to)?;
             Self::assign_bounty_impl(bounty_id, funder, assign_to)
+        }
+        #[weight = 0]
+        fn outdate_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            T::CouncilOrigin::ensure_origin(origin)?;
+            Self::outdate_bounty_impl(bounty_id)
         }
     }
 }
@@ -203,6 +214,7 @@ impl<T: Trait> Module<T> {
         );
         if accepted {
             BountyStateOf::insert(bounty_id, BountyState::Accepted);
+            ApprovedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
             Self::deposit_event(RawEvent::Accept(bounty_id));
         } else {
             BountyStateOf::insert(bounty_id, BountyState::Rejected);
@@ -220,26 +232,50 @@ impl<T: Trait> Module<T> {
             Error::<T>::TooManyHuntedBounties
         );
 
-        ensure!(Self::hunters_for(bounty_id, &hunter).is_none(), Error::<T>::AlreadyHunted);
+        ensure!(
+            Self::hunters_for(bounty_id, &hunter).is_none(),
+            Error::<T>::AlreadyHunted
+        );
         HuntersFor::<T>::insert(bounty_id, &hunter, ());
 
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
         Ok(())
     }
-    fn assign_bounty_impl(bounty_id: BountyId, funder: T::AccountId, hunter: T::AccountId) -> DispatchResult {
+    fn assign_bounty_impl(
+        bounty_id: BountyId,
+        funder: T::AccountId,
+        hunter: T::AccountId,
+    ) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Accepted,
             Error::<T>::InvalidState
         );
         let bounty = Self::get_bounty(&bounty_id)?;
         Self::check_caller(&funder, &bounty)?;
-        ensure!(Self::hunters_for(bounty_id, &hunter).is_some(), Error::<T>::NotHunter);
+        ensure!(
+            Self::hunters_for(bounty_id, &hunter).is_some(),
+            Error::<T>::NotHunter
+        );
 
-
-        HuntedBounties::<T>::insert(bounty_id, (hunter.clone(), frame_system::Module::<T>::block_number()));
+        HuntedBounties::<T>::insert(bounty_id, hunter.clone());
 
         BountyStateOf::insert(bounty_id, BountyState::Assigned);
         Self::deposit_event(RawEvent::AssignBounty(bounty_id, hunter));
+        Ok(())
+    }
+    fn outdate_bounty_impl(bounty_id: BountyId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Accepted,
+            Error::<T>::InvalidState
+        );
+        let height = Self::approved_height(&bounty_id);
+        let current_height = frame_system::Module::<T>::block_number();
+        if height + Self::outdated_height() > current_height {
+            Err(Error::<T>::ValidBounty)?;
+        }
+
+        BountyStateOf::insert(bounty_id, BountyState::Outdated);
+        Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
         Ok(())
     }
 }
