@@ -138,9 +138,9 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn review_bounty(origin, bounty_id: BountyId, accepted: bool) -> DispatchResult {
+        fn examine_bounty(origin, bounty_id: BountyId, accepted: bool) -> DispatchResult {
             T::CouncilOrigin::ensure_origin(origin)?;
-            Self::review_bounty_impl(bounty_id, accepted)?;
+            Self::examine_bounty_impl(bounty_id, accepted)?;
             Ok(())
         }
 
@@ -207,7 +207,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::Apply(bounty_id));
         Ok(())
     }
-    fn review_bounty_impl(bounty_id: BountyId, accepted: bool) -> DispatchResult {
+    fn examine_bounty_impl(bounty_id: BountyId, accepted: bool) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Applying,
             Error::<T>::InvalidState
