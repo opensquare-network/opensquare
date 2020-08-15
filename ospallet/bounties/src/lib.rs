@@ -305,7 +305,11 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::Submit(bounty_id));
         Ok(())
     }
-    fn review_bounty_impl(bounty_id: BountyId, funder: T::AccountId, accept: bool) -> DispatchResult {
+    fn review_bounty_impl(
+        bounty_id: BountyId,
+        funder: T::AccountId,
+        accept: bool,
+    ) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Reviewing,
             Error::<T>::InvalidState
@@ -318,7 +322,7 @@ impl<T: Trait> Module<T> {
 
             BountyStateOf::insert(bounty_id, BountyState::Resolved);
             Self::deposit_event(RawEvent::Resolve(bounty_id));
-            // TODO maybe delete storage to save disk space
+        // TODO maybe delete storage to save disk space
         } else {
             // TODO
         }

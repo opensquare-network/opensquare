@@ -25,7 +25,7 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_system::{EnsureOneOf, EnsureRoot};
+use frame_system::{EnsureOneOf, EnsureRoot, EnsureSignedBy};
 use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
 
 // orml
@@ -260,10 +260,18 @@ impl orml_oracle::Trait for Runtime {
     type AuthorityId = orml_oracle::AuthorityId;
 }
 
-type EnsureRootOrHalfGeneralCouncil = EnsureOneOf<AccountId, EnsureRoot<AccountId>, OsSystem>;
+type EnsureRootOrCouncil =
+    EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
 
 impl ospallet_system::Trait for Runtime {
     type Event = Event;
+}
+
+impl ospallet_bounties::Trait for Runtime {
+    type Event = Event;
+    type Currency = Currencies;
+    type CouncilOrigin = EnsureRootOrCouncil;
+    type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -288,6 +296,7 @@ construct_runtime!(
         Oracle: orml_oracle::{Module, Storage, Call, Config<T>, Event<T>, ValidateUnsigned},
 
         OsSystem: ospallet_system::{Module, Call, Config<T>, Storage, Event<T>},
+        OsBounties: ospallet_bounties::{Module, Call, Storage, Event<T>},
     }
 );
 
