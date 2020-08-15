@@ -60,6 +60,9 @@ pub type Price = FixedU128;
 /// A Digest of Square Description in runtime.
 pub type SdDigest = sp_core::H256;
 
+/// unique index for a bounty
+pub type BountyId = sp_core::H256;
+
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this
 /// account.

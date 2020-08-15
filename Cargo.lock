@@ -3177,6 +3177,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "opensquare-primitives",
+ "orml-traits",
  "ospallet-support",
  "parity-scale-codec",
  "serde",
