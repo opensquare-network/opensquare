@@ -91,6 +91,8 @@ decl_event!(
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
         OutdateBounty(BountyId),
+        Submit(BountyId),
+        Resolve(BountyId),
     }
 );
 decl_storage! {
@@ -112,7 +114,7 @@ decl_storage! {
             T::AccountId => Vec<BountyId>;
 
         // todo, may use struct instead of tuple
-        pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => Option<T::AccountId>;
+        pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => T::AccountId;
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
         pub OutdatedHeight get(fn outdated_height): T::BlockNumber = 1000.saturated_into();
@@ -161,6 +163,16 @@ decl_module! {
             T::CouncilOrigin::ensure_origin(origin)?;
             Self::outdate_bounty_impl(bounty_id)
         }
+        #[weight = 0]
+        fn submit_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let hunter = ensure_signed(origin)?;
+            Self::submit_bounty_impl(bounty_id, hunter)
+        }
+        #[weight = 0]
+        fn review_bounty(origin, bounty_id: BountyId, accept: bool) -> DispatchResult {
+            let funder = ensure_signed(origin)?;
+            Self::review_bounty_impl(bounty_id, funder, accept)
+        }
     }
 }
 
@@ -181,6 +193,8 @@ impl<T: Trait> Module<T> {
     }
     fn create_bounty_impl(creator: T::AccountId, bounty: BountyOf<T>) -> DispatchResult {
         let bounty_id = T::DetermineBountyId::bounty_id_for(&creator);
+
+        ensure!(!BountyStateOf::contains_key(bounty_id), Error::<T>::Existed);
         ensure!(Self::bounties(bounty_id).is_none(), Error::<T>::Existed);
 
         Self::check_caller(&creator, &bounty)?;
@@ -276,6 +290,39 @@ impl<T: Trait> Module<T> {
 
         BountyStateOf::insert(bounty_id, BountyState::Outdated);
         Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
+        Ok(())
+    }
+    fn submit_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Assigned,
+            Error::<T>::InvalidState
+        );
+
+        let expected_hunter = Self::hunted_bounties(&bounty_id);
+        ensure!(expected_hunter == hunter, Error::<T>::NotHunter);
+
+        BountyStateOf::insert(bounty_id, BountyState::Reviewing);
+        Self::deposit_event(RawEvent::Submit(bounty_id));
+        Ok(())
+    }
+    fn review_bounty_impl(bounty_id: BountyId, funder: T::AccountId, accept: bool) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Reviewing,
+            Error::<T>::InvalidState
+        );
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_caller(&funder, &bounty)?;
+
+        if accept {
+            // TODO maybe other check
+
+            BountyStateOf::insert(bounty_id, BountyState::Resolved);
+            Self::deposit_event(RawEvent::Resolve(bounty_id));
+            // TODO maybe delete storage to save disk space
+        } else {
+            // TODO
+        }
+
         Ok(())
     }
 }
