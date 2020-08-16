@@ -1,0 +1,48 @@
+{
+    "CurrencyId": {
+        "_enum": [
+            "Native",
+            "USDT",
+            "AUSD",
+            "DOT"
+        ]
+    },
+    "Amount": "i128",
+    "CurrencyIdOf": "CurrencyId",
+    "Price": "FixedU128",
+    "SdDigest": "H256",
+    "BountyId": "H256",
+    "BountyState": {
+        "_enum": [
+            "Creating",
+            "Applying",
+            "Accepted",
+            "Rejected",
+            "Assigned",
+            "Outdated",
+            "Reviewing",
+            "Resolved"
+        ]
+    },
+    "BountyCategory": {
+        "_enum": [
+            "Development",
+            "Design",
+            "Document"
+        ]
+    },
+    "BountyMetaData": {
+        "owner": "AccountId",
+        "currencyId": "CurrencyId",
+        "payment": "Balance",
+        "digest": "SdDigest"
+    },
+    "Bounty": {
+        "_enum": {
+            "V1": "BountyMetaData"
+        }
+    },
+    "SettingData": {
+        "category": "BountyCategory"
+    }
+}
