@@ -96,7 +96,7 @@ decl_event!(
     }
 );
 decl_storage! {
-    trait Store for Module<T: Trait> as OSBounties {
+    trait Store for Module<T: Trait> as OsBounties {
         /// Bounties basic info of a bounty_id
         pub Bounties get(fn bounties): map hasher(identity)
             BountyId => Option<Bounty<T::AccountId, CurrencyIdOf<T>, BalanceOf<T>>>;

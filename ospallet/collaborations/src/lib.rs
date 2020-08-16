@@ -26,7 +26,7 @@ decl_event!(
 );
 
 decl_storage! {
-    trait Store for Module<T: Trait> as OSCollaborations {
+    trait Store for Module<T: Trait> as OsCollaborations {
 
     }
 }
