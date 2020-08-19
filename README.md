@@ -2,6 +2,9 @@
 opensquare node based on substrate
 
 
+## License
+[Apache 2.0](LICENSE)
+
 ## Acknowledgements
 
 This project is supported by a [Web3 Foundation grant](https://web3.foundation/grants/).
