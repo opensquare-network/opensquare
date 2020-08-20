@@ -158,16 +158,19 @@ decl_module! {
             let assign_to = T::Lookup::lookup(assign_to)?;
             Self::assign_bounty_impl(bounty_id, funder, assign_to)
         }
+
         #[weight = 0]
         fn outdate_bounty(origin, bounty_id: BountyId) -> DispatchResult {
             T::CouncilOrigin::ensure_origin(origin)?;
             Self::outdate_bounty_impl(bounty_id)
         }
+
         #[weight = 0]
         fn submit_bounty(origin, bounty_id: BountyId) -> DispatchResult {
             let hunter = ensure_signed(origin)?;
             Self::submit_bounty_impl(bounty_id, hunter)
         }
+
         #[weight = 0]
         fn review_bounty(origin, bounty_id: BountyId, accept: bool) -> DispatchResult {
             let funder = ensure_signed(origin)?;
@@ -181,6 +184,7 @@ impl<T: Trait> Module<T> {
         let b = Self::bounties(id).ok_or(Error::<T>::NotExisted)?;
         Ok(b)
     }
+
     fn check_caller(caller: &T::AccountId, bounty: &BountyOf<T>) -> DispatchResult {
         match bounty {
             Bounty::V1(ref metadata) => {
@@ -191,6 +195,7 @@ impl<T: Trait> Module<T> {
         }
         Ok(())
     }
+
     fn create_bounty_impl(creator: T::AccountId, bounty: BountyOf<T>) -> DispatchResult {
         let bounty_id = T::DetermineBountyId::bounty_id_for(&creator);
 
@@ -208,6 +213,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::CreateBounty(creator, bounty_id));
         Ok(())
     }
+
     fn apply_bounty_impl(caller: T::AccountId, bounty_id: BountyId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Creating,
@@ -221,6 +227,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::Apply(bounty_id));
         Ok(())
     }
+
     fn examine_bounty_impl(bounty_id: BountyId, accepted: bool) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Applying,
@@ -236,6 +243,7 @@ impl<T: Trait> Module<T> {
         }
         Ok(())
     }
+
     fn hunt_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Accepted,
@@ -255,6 +263,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
         Ok(())
     }
+
     fn assign_bounty_impl(
         bounty_id: BountyId,
         funder: T::AccountId,
@@ -277,6 +286,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::AssignBounty(bounty_id, hunter));
         Ok(())
     }
+
     fn outdate_bounty_impl(bounty_id: BountyId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Accepted,
@@ -292,6 +302,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
         Ok(())
     }
+
     fn submit_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Assigned,
@@ -305,6 +316,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::Submit(bounty_id));
         Ok(())
     }
+
     fn review_bounty_impl(
         bounty_id: BountyId,
         funder: T::AccountId,
@@ -322,7 +334,7 @@ impl<T: Trait> Module<T> {
 
             BountyStateOf::insert(bounty_id, BountyState::Resolved);
             Self::deposit_event(RawEvent::Resolve(bounty_id));
-        // TODO maybe delete storage to save disk space
+            // TODO maybe delete storage to save disk space
         } else {
             // TODO
         }
