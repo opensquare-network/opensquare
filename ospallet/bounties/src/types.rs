@@ -27,7 +27,7 @@ pub enum BountyState {
     // Idle,
     Assigned,
     Outdated,
-    Reviewing, // todo maybe change to submitted
+    Submitted,
     Resolved,
 }
 
