@@ -88,6 +88,7 @@ decl_event!(
         Approve(BountyId),
         Accept(BountyId),
         Reject(BountyId),
+        Close(BountyId),
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
         OutdateBounty(BountyId),
@@ -129,6 +130,13 @@ decl_module! {
         fn create_bounty(origin, bounty: Bounty<T::AccountId, CurrencyIdOf<T>, BalanceOf<T>>) -> DispatchResult {
             let who = ensure_signed(origin)?;
             Self::create_bounty_impl(who, bounty)?;
+            Ok(())
+        }
+
+        #[weight = 0]
+        fn close_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            Self::close_bounty_impl(who, bounty_id)?;
             Ok(())
         }
 
@@ -214,6 +222,26 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
+    fn close_bounty_impl(funder: T::AccountId, bounty_id: BountyId) -> DispatchResult {
+        // No meaning to close a rejected bounty
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Rejected,
+            Error::<T>::InvalidState
+        );
+
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_caller(&funder, &bounty)?;
+        BountyStateOf::insert(bounty_id, BountyState::Closed);
+
+        // TODO: Remove this bounty from the `hunted_bounties_for` storage for every hunters
+        // TODO: Remove all hunters from the `HuntersFor` storage for this closed bounty
+        // TODO: Not sure with the `HuntedBounties` storage
+
+        Self::deposit_event(RawEvent::Close(bounty_id));
+
+        Ok(())
+    }
+
     fn apply_bounty_impl(caller: T::AccountId, bounty_id: BountyId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Creating,
@@ -253,11 +281,11 @@ impl<T: Trait> Module<T> {
             Self::hunted_bounties_for(&hunter).len() as u32 <= Self::max_holding_bounties(),
             Error::<T>::TooManyHuntedBounties
         );
-
         ensure!(
             Self::hunters_for(bounty_id, &hunter).is_none(),
             Error::<T>::AlreadyHunted
         );
+
         HuntersFor::<T>::insert(bounty_id, &hunter, ());
 
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
