@@ -312,7 +312,7 @@ impl<T: Trait> Module<T> {
         let expected_hunter = Self::hunted_bounties(&bounty_id);
         ensure!(expected_hunter == hunter, Error::<T>::NotHunter);
 
-        BountyStateOf::insert(bounty_id, BountyState::Reviewing);
+        BountyStateOf::insert(bounty_id, BountyState::Submitted);
         Self::deposit_event(RawEvent::Submit(bounty_id));
         Ok(())
     }
@@ -323,7 +323,7 @@ impl<T: Trait> Module<T> {
         accept: bool,
     ) -> DispatchResult {
         ensure!(
-            Self::bounty_state_of(bounty_id) == BountyState::Reviewing,
+            Self::bounty_state_of(bounty_id) == BountyState::Submitted,
             Error::<T>::InvalidState
         );
         let bounty = Self::get_bounty(&bounty_id)?;
