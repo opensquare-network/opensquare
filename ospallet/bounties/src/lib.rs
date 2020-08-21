@@ -233,7 +233,6 @@ impl<T: Trait> Module<T> {
         Self::check_caller(&funder, &bounty)?;
         BountyStateOf::insert(bounty_id, BountyState::Closed);
 
-        // TODO: Remove this bounty from the `hunted_bounties_for` storage for every hunters
         let hunter = HuntedBounties::<T>::take(&bounty_id);
         HuntedBountiesFor::<T>::try_mutate_exists(hunter, |option| -> DispatchResult {
             if let Some(ref mut bounty_ids) = option {
@@ -243,11 +242,8 @@ impl<T: Trait> Module<T> {
                 }
             }
             Ok(())
-        });
-        // TODO: Remove all hunters from the `HuntersFor` storage for this closed bounty
+        })?;
         HuntersFor::<T>::remove_prefix(&bounty_id);
-        // TODO: Not sure with the `HuntedBounties` storage
-        // HuntedBounties::take would remove this storage
 
         Self::deposit_event(RawEvent::Close(bounty_id));
 
