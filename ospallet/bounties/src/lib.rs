@@ -88,6 +88,7 @@ decl_event!(
         Approve(BountyId),
         Accept(BountyId),
         Reject(BountyId),
+        Close(BountyId),
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
         OutdateBounty(BountyId),
@@ -113,7 +114,7 @@ decl_storage! {
         pub HuntedBountiesFor get(fn hunted_bounties_for): map hasher(blake2_128_concat)
             T::AccountId => Vec<BountyId>;
 
-        // todo, may use struct instead of tuple
+        // todo, change this type to Vec<T::AccountId> for multi-hunter
         pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => T::AccountId;
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
@@ -129,6 +130,13 @@ decl_module! {
         fn create_bounty(origin, bounty: Bounty<T::AccountId, CurrencyIdOf<T>, BalanceOf<T>>) -> DispatchResult {
             let who = ensure_signed(origin)?;
             Self::create_bounty_impl(who, bounty)?;
+            Ok(())
+        }
+
+        #[weight = 0]
+        fn close_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            Self::close_bounty_impl(who, bounty_id)?;
             Ok(())
         }
 
@@ -214,6 +222,34 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
+    fn close_bounty_impl(funder: T::AccountId, bounty_id: BountyId) -> DispatchResult {
+        // No meaning to close a rejected bounty
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Rejected,
+            Error::<T>::InvalidState
+        );
+
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_caller(&funder, &bounty)?;
+        BountyStateOf::insert(bounty_id, BountyState::Closed);
+
+        let hunter = HuntedBounties::<T>::take(&bounty_id);
+        HuntedBountiesFor::<T>::try_mutate_exists(hunter, |option| -> DispatchResult {
+            if let Some(ref mut bounty_ids) = option {
+                bounty_ids.retain(|id| id != &bounty_id);
+                if bounty_ids.is_empty() {
+                    *option = None;
+                }
+            }
+            Ok(())
+        })?;
+        HuntersFor::<T>::remove_prefix(&bounty_id);
+
+        Self::deposit_event(RawEvent::Close(bounty_id));
+
+        Ok(())
+    }
+
     fn apply_bounty_impl(caller: T::AccountId, bounty_id: BountyId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Creating,
@@ -253,11 +289,11 @@ impl<T: Trait> Module<T> {
             Self::hunted_bounties_for(&hunter).len() as u32 <= Self::max_holding_bounties(),
             Error::<T>::TooManyHuntedBounties
         );
-
         ensure!(
             Self::hunters_for(bounty_id, &hunter).is_none(),
             Error::<T>::AlreadyHunted
         );
+
         HuntersFor::<T>::insert(bounty_id, &hunter, ());
 
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
@@ -334,7 +370,7 @@ impl<T: Trait> Module<T> {
 
             BountyStateOf::insert(bounty_id, BountyState::Resolved);
             Self::deposit_event(RawEvent::Resolve(bounty_id));
-            // TODO maybe delete storage to save disk space
+        // TODO maybe delete storage to save disk space
         } else {
             // TODO
         }

@@ -22,8 +22,9 @@ pub enum BountyCategory {
 pub enum BountyState {
     Creating,
     Applying,
-    Accepted,
-    Rejected,
+    Accepted, // Accepted by the Council
+    Rejected, // Rejected by the Council
+    Closed,   // Closed by funder
     // Idle,
     Assigned,
     Outdated,
