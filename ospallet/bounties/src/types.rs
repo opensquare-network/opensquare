@@ -24,7 +24,7 @@ pub enum BountyState {
     Applying,
     Accepted, // Accepted by the Council
     Rejected, // Rejected by the Council
-    Closed, // Closed by funder
+    Closed,   // Closed by funder
     // Idle,
     Assigned,
     Outdated,

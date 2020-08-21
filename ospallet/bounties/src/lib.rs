@@ -114,7 +114,7 @@ decl_storage! {
         pub HuntedBountiesFor get(fn hunted_bounties_for): map hasher(blake2_128_concat)
             T::AccountId => Vec<BountyId>;
 
-        // todo, may use struct instead of tuple
+        // todo, change this type to Vec<T::AccountId> for multi-hunter
         pub HuntedBounties get(fn hunted_bounties): map hasher(identity) BountyId => T::AccountId;
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
@@ -234,8 +234,20 @@ impl<T: Trait> Module<T> {
         BountyStateOf::insert(bounty_id, BountyState::Closed);
 
         // TODO: Remove this bounty from the `hunted_bounties_for` storage for every hunters
+        let hunter = HuntedBounties::<T>::take(&bounty_id);
+        HuntedBountiesFor::<T>::try_mutate_exists(hunter, |option| -> DispatchResult {
+            if let Some(ref mut bounty_ids) = option {
+                bounty_ids.retain(|id| id != &bounty_id);
+                if bounty_ids.is_empty() {
+                    *option = None;
+                }
+            }
+            Ok(())
+        });
         // TODO: Remove all hunters from the `HuntersFor` storage for this closed bounty
+        HuntersFor::<T>::remove_prefix(&bounty_id);
         // TODO: Not sure with the `HuntedBounties` storage
+        // HuntedBounties::take would remove this storage
 
         Self::deposit_event(RawEvent::Close(bounty_id));
 
@@ -362,7 +374,7 @@ impl<T: Trait> Module<T> {
 
             BountyStateOf::insert(bounty_id, BountyState::Resolved);
             Self::deposit_event(RawEvent::Resolve(bounty_id));
-            // TODO maybe delete storage to save disk space
+        // TODO maybe delete storage to save disk space
         } else {
             // TODO
         }
