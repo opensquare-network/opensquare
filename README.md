@@ -1,9 +1,12 @@
 # opensquare
-opensquare node based on substrate
+<p align="center">
+    <img src="/logo.png">
+</p>
 
+OpenSquare Network aim to build a blockchain based collaboration and reputation platform, while it will support funders
+and hunters to collaborate on bounties, with the Council to deal with the disputes.
 
-## License
-[Apache 2.0](LICENSE)
+Users' reputation and skill proof will be built by their daily activities.
 
 ## Build and Run
 this project need rust tool chain, install rust from this [link](https://www.rust-lang.org/learn/get-started)
@@ -29,7 +32,7 @@ following parameters means:
 * `-d <directory>`: means blockchain database stored in the `<directory>`, if you what to clear all data, just stop the
 node and delete this directory. If you do not use this parameter, the node would use default directory to store data.
 * `--execution=<STRATEGY>`: substrate provide `Native` and `WASM` execution strategy. for test and develop, we suggest to
-use `Native`  
+use `Native`
 
 you could launch node with following commands:
 
@@ -41,7 +44,7 @@ you could launch node with following commands:
     ```
 2. local testnet mode:
     1. run tow nodes in a single machine
-     
+
         run alice:
         ```bash
         ./target/debug/opensquare --chain=local -d .alice --name=alice --alice --execution=Native
@@ -56,7 +59,7 @@ you could launch node with following commands:
         ./target/debug/opensquare --chain=local -d .alice --name=alice --alice --execution=Native --ws-external --rpc-external --rpc-cors=all
         ```
         notice if not point `--port`, it would use default `30333` as p2p port.
-       
+
         and lookup logs, could find a log like
         ```bash
         Local node identity is: 12D3KooWC6ojeA28QDf2GBupCWbqsc2W8JwFUy6GW9Zjwoppz1wb (legacy representation: QmUaXtahadUKyosAnpdefPRdxM3CkHeb9uh6QZW6hNQcPz)
@@ -68,12 +71,12 @@ you could launch node with following commands:
         # /ip4/192.168.122.1/tcp/30333/p2p/12D3KooWC6ojeA28QDf2GBupCWbqsc2W8JwFUy6GW9Zjwoppz1wb
         ```
         this string would be the bootnode for bob.
-        
+
         and run bob in another machine:
         ```bash
         ./target/debug/opensquare --chain=local -d .bob --name=bob --bob --execution=Native --ws-external --rpc-external --rpc-cors=all --bootnode=<bootnode above>
         ```
-        
+
         bootnode could get from another way: call rpc method `system_localListenAddresses` for alice, and would list like:
         ```json
         {
@@ -94,8 +97,10 @@ you could launch node with following commands:
         }
         ```
         just pick up suitable bootnode for bob.
-        
-    
+
+## License
+[Apache 2.0](LICENSE)
+
 ## Acknowledgements
 
 This project is supported by a [Web3 Foundation grant](https://web3.foundation/grants/).
