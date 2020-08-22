@@ -310,7 +310,7 @@ impl<T: Trait> Module<T> {
         // release reserved balance
         let remaining = T::Currency::unreserve(id, &funder, locked);
         // remove hunter for a bounty
-        // Self::remove_hunter_for_bounty(bounty_id);
+        Self::remove_hunter_for_bounty(bounty_id);
 
         Self::deposit_event(RawEvent::Close(bounty_id, remaining));
 
