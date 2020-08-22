@@ -1,7 +1,11 @@
 # opensquare
-<p align="center">
-    <img src="/logo.png">
-</p>
+
+<table cellspacing="0" cellpadding="0" style="border: none;">
+  <tr>
+    <td><img src="/logo.png"  alt="1"></td>
+    <td><img src="/docs/web3_foundation_grants_badge_black.png" alt="1"></td>
+   </tr>
+</table>
 
 OpenSquare Network aim to build a blockchain based collaboration and reputation platform, while it will support funders
 and hunters to collaborate on bounties, with the Council to deal with the disputes.
@@ -108,9 +112,3 @@ This project is supported by a [Web3 Foundation grant](https://web3.foundation/g
 We would also like to thank the following teams for their support:
 
 * [ChainX](https://www.chainx.org)
-
-<p align="center">
-  <a href="https://web3.foundation/grants/">
-    <img src="/docs/web3 foundation_grants_badge_black.png">
-  </a>
-</p>
