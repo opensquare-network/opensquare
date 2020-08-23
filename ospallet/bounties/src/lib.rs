@@ -204,7 +204,7 @@ decl_module! {
         #[weight = 0]
         fn cancel_bounty(origin, bounty_id: BountyId) -> DispatchResult {
             let hunter = ensure_signed(origin)?;
-            Self::cancel_bounty_impl(bounty_id, hunter)
+            Self::cancel_bounty_hunting_imple(bounty_id, hunter)
         }
 
         #[weight = 0]
@@ -530,7 +530,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    fn cancel_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+    fn cancel_bounty_hunting_imple(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Applying,
             Error::<T>::InvalidState
