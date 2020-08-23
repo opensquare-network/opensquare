@@ -10,7 +10,7 @@ use frame_support::{
     IterableStorageDoubleMap,
 };
 use frame_system::ensure_signed;
-use sp_runtime::traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup};
+use sp_runtime::{Percent, traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup}};
 use sp_std::{marker::PhantomData, prelude::*, result};
 
 // orml
@@ -20,6 +20,8 @@ use orml_utilities::with_transaction_result;
 use opensquare_primitives::BountyId;
 
 use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
+use frame_support::traits::{BalanceStatus, Get};
+
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as MultiCurrency<<T as frame_system::Trait>::AccountId>>::Balance;
@@ -60,6 +62,10 @@ pub trait Trait: frame_system::Trait {
     type Currency: MultiCurrency<Self::AccountId> + MultiReservableCurrency<Self::AccountId>;
 
     type CouncilOrigin: EnsureOrigin<Self::Origin>;
+
+    type CouncilAccount: Get<Self::AccountId>;
+
+    type CouncilFee: Get<Percent>;
 
     type DetermineBountyId: BountyIdFor<Self::AccountId>;
 }
@@ -412,6 +418,29 @@ impl<T: Trait> Module<T> {
         Self::check_funder(&funder, &bounty)?;
 
         // TODO maybe other check
+
+        // release currency
+        let hunter = Self::hunted_for_bounty(&bounty_id);
+        let (id, locked) = Self::parse_payment(&bounty);
+
+        // todo, can't impl yet
+        // let fee =T::CouncilFee::get() *  locked ;
+        // let council_account = T::CouncilAccount::get();
+        // // todo may be use log to print remaining
+        // let _ = T::Currency::repatriate_reserved(
+        //     id,
+        //     &funder,
+        //     &hunter,
+        //     locked - fee,
+        //     BalanceStatus::Free,
+        // )?;
+        // let _ = T::Currency::repatriate_reserved(
+        //     id,
+        //     &council_account,
+        //     &hunter,
+        //     fee,
+        //     BalanceStatus::Free,
+        // )?;
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
