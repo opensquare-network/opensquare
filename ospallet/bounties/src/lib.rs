@@ -10,7 +10,10 @@ use frame_support::{
     IterableStorageDoubleMap,
 };
 use frame_system::ensure_signed;
-use sp_runtime::{Percent, traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup}};
+use sp_runtime::{
+    traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup},
+    Percent,
+};
 use sp_std::{marker::PhantomData, prelude::*, result};
 
 // orml
@@ -21,7 +24,6 @@ use opensquare_primitives::BountyId;
 
 use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
 use frame_support::traits::{BalanceStatus, Get};
-
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as MultiCurrency<<T as frame_system::Trait>::AccountId>>::Balance;
@@ -579,7 +581,7 @@ impl<T: Trait> Module<T> {
 
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
 
-        Self::change_state(bounty_id, BountyState::Applying);
+        Self::change_state(bounty_id, BountyState::Accepted);
         Self::deposit_event(RawEvent::Apply(bounty_id));
 
         Ok(())
