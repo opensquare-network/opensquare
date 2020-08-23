@@ -15,7 +15,6 @@
     "BountyId": "H256",
     "BountyState": {
         "_enum": [
-            "Creating",
             "Applying",
             "Accepted",
             "Rejected",

@@ -20,7 +20,6 @@ pub enum BountyCategory {
 #[derive(PartialEq, Eq, Clone, Copy, Encode, Decode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyState {
-    Creating,
     Applying,
     Accepted, // Accepted by the Council
     Rejected, // Rejected by the Council
@@ -34,7 +33,7 @@ pub enum BountyState {
 
 impl Default for BountyState {
     fn default() -> Self {
-        BountyState::Creating
+        BountyState::Applying
     }
 }
 

@@ -156,14 +156,6 @@ decl_module! {
             Ok(())
         }
 
-        /// apply a bounty after creating a bounty.
-        #[weight = 0]
-        fn apply_bounty(origin, bounty_id: BountyId) -> DispatchResult {
-            let who = ensure_signed(origin)?;
-            Self::apply_bounty_impl(who, bounty_id)?;
-            Ok(())
-        }
-
         #[weight = 0]
         fn assign_bounty(origin, bounty_id: BountyId, assign_to: <T::Lookup as StaticLookup>::Source) -> DispatchResult {
             let funder = ensure_signed(origin)?;
@@ -308,7 +300,7 @@ impl<T: Trait> Module<T> {
                 list.push(bounty_id);
             }
         });
-        Self::change_state(bounty_id, BountyState::Creating);
+        Self::change_state(bounty_id, BountyState::Applying);
         Self::deposit_event(RawEvent::CreateBounty(creator, bounty_id));
         Ok(())
     }
@@ -322,20 +314,6 @@ impl<T: Trait> Module<T> {
 
         T::Currency::reserve(id, funder, locked)?;
 
-        Ok(())
-    }
-
-    fn apply_bounty_impl(caller: T::AccountId, bounty_id: BountyId) -> DispatchResult {
-        ensure!(
-            Self::bounty_state_of(bounty_id) == BountyState::Creating,
-            Error::<T>::InvalidState
-        );
-        let b = Self::get_bounty(&bounty_id)?;
-        Self::check_funder(&caller, &b)?;
-        // todo do check
-
-        Self::change_state(bounty_id, BountyState::Applying);
-        Self::deposit_event(RawEvent::Apply(bounty_id));
         Ok(())
     }
 
