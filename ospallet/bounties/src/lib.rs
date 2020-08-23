@@ -49,7 +49,7 @@ where
     fn bounty_id_for(origin: &T::AccountId) -> BountyId {
         let nonce: u32 = frame_system::Module::<T>::account(origin)
             .nonce
-            .saturated_into() as u32;
+            .saturated_into::<u32>();
         let mut buf = Vec::new();
         buf.extend_from_slice(origin.as_ref());
         buf.extend_from_slice(&nonce.to_le_bytes());
@@ -97,8 +97,8 @@ decl_event!(
         <T as frame_system::Trait>::AccountId,
         Balance = BalanceOf<T>
     {
-        CreateBounty(AccountId, BountyId),
-        Apply(BountyId),
+        ApplyBounty(AccountId, BountyId),
+        // Apply(BountyId),
         Approve(BountyId),
         Accept(BountyId),
         Reject(BountyId),
@@ -303,7 +303,7 @@ impl<T: Trait> Module<T> {
             }
         });
         Self::change_state(bounty_id, BountyState::Applying);
-        Self::deposit_event(RawEvent::CreateBounty(creator, bounty_id));
+        Self::deposit_event(RawEvent::ApplyBounty(creator, bounty_id));
         Ok(())
     }
 
@@ -560,7 +560,7 @@ impl<T: Trait> Module<T> {
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
 
         Self::change_state(bounty_id, BountyState::Accepted);
-        Self::deposit_event(RawEvent::Apply(bounty_id));
+        Self::deposit_event(RawEvent::Accept(bounty_id));
 
         Ok(())
     }
