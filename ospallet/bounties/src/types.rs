@@ -65,6 +65,7 @@ pub struct SettingData {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum CloseReason {
     Outdated,
+    Resolved,
     // TODO other reason
 }
 
@@ -78,4 +79,14 @@ impl Default for HunterBountyState {
     fn default() -> Self {
         Self::Hunting
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum BountyRemark {
+    A,
+    B,
+    C,
+    D,
+    E,
 }

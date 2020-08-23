@@ -19,7 +19,7 @@ use orml_utilities::with_transaction_result;
 
 use opensquare_primitives::BountyId;
 
-use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
+use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as MultiCurrency<<T as frame_system::Trait>::AccountId>>::Balance;
@@ -97,6 +97,7 @@ decl_event!(
         AssignBounty(BountyId, Vec<AccountId>),
         OutdateBounty(BountyId),
         Submit(BountyId),
+        Resign(BountyId, AccountId),
         Resolve(BountyId),
     }
 );
@@ -167,9 +168,9 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn resolve_bounty_and_remark(origin, bounty_id: BountyId) -> DispatchResult {
+        fn resolve_bounty_and_remark(origin, bounty_id: BountyId, remark: BountyRemark) -> DispatchResult {
             let who = ensure_signed(origin)?;
-            Self::resolve_bounty_and_remark_impl(bounty_id, who)?;
+            Self::resolve_bounty_and_remark_impl(bounty_id, who, remark)?;
             Ok(())
         }
 
@@ -201,6 +202,24 @@ decl_module! {
             Self::submit_bounty_impl(bounty_id, hunter)
         }
 
+        #[weight = 0]
+        fn cancel_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let hunter = ensure_signed(origin)?;
+            Self::cancel_bounty_impl(bounty_id, hunter)
+        }
+
+        #[weight = 0]
+        fn resign_from_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+            let hunter = ensure_signed(origin)?;
+            Self::resign_from_bounty_impl(bounty_id, hunter)
+        }
+
+        #[weight = 0]
+        fn remark_bounty_funder(origin, bounty_id: BountyId, remark: BountyRemark) -> DispatchResult {
+            let hunter = ensure_signed(origin)?;
+            Self::remark_bounty_funder_impl(bounty_id, hunter, remark)
+        }
+
     }
 }
 
@@ -228,7 +247,7 @@ impl<T: Trait> Module<T> {
         }
     }
 
-    fn remove_hunter_for_bounty(bounty_id: BountyId) {
+    fn remove_hunters_for_bounty(bounty_id: BountyId) {
         // remove hunters for a bounty
         let accounts = HuntingForBounty::<T>::drain_prefix(bounty_id).map(|(a, _)| a);
         let mut hunters = HuntedForBounty::<T>::take(&bounty_id);
@@ -237,6 +256,28 @@ impl<T: Trait> Module<T> {
         for hunter in hunters {
             HunterBounties::<T>::remove(hunter, bounty_id)
         }
+    }
+
+    fn remove_hunter_for_bounty(
+        bounty_id: BountyId,
+        hunter: &T::AccountId,
+    ) -> result::Result<usize, DispatchError> {
+        // 1
+        HuntedForBounty::<T>::try_mutate(
+            bounty_id,
+            |hunters| -> result::Result<usize, DispatchError> {
+                if !hunters.contains(hunter) {
+                    Err(Error::<T>::NotHunter)?
+                }
+                // remove hunter
+                hunters.retain(|item| item != hunter);
+                // 2
+                HunterBounties::<T>::remove(&hunter, bounty_id);
+                // 3
+                HuntingForBounty::<T>::remove(bounty_id, &hunter);
+                Ok(hunters.len())
+            },
+        )
     }
 }
 
@@ -310,7 +351,7 @@ impl<T: Trait> Module<T> {
         // release reserved balance
         let remaining = T::Currency::unreserve(id, &funder, locked);
         // remove hunter for a bounty
-        Self::remove_hunter_for_bounty(bounty_id);
+        Self::remove_hunters_for_bounty(bounty_id);
 
         Self::deposit_event(RawEvent::Close(bounty_id, remaining));
 
@@ -356,7 +397,11 @@ impl<T: Trait> Module<T> {
     }
 
     // todo, need remark score
-    fn resolve_bounty_and_remark_impl(bounty_id: BountyId, funder: T::AccountId) -> DispatchResult {
+    fn resolve_bounty_and_remark_impl(
+        bounty_id: BountyId,
+        funder: T::AccountId,
+        remark: BountyRemark,
+    ) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Submitted,
             Error::<T>::InvalidState
@@ -367,7 +412,7 @@ impl<T: Trait> Module<T> {
         // TODO maybe other check
 
         // remove hunter
-        Self::remove_hunter_for_bounty(bounty_id);
+        Self::remove_hunters_for_bounty(bounty_id);
 
         BountyStateOf::insert(bounty_id, BountyState::Resolved);
         Self::deposit_event(RawEvent::Resolve(bounty_id));
@@ -395,20 +440,20 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
     fn force_close_bounty_impl(bounty_id: BountyId, reason: CloseReason) -> DispatchResult {
-        ensure!(
-            Self::bounty_state_of(bounty_id) == BountyState::Accepted,
-            Error::<T>::InvalidState
-        );
-
         let bounty = Self::get_bounty(&bounty_id)?;
         let funder = Self::get_funder(&bounty);
         let (id, locked) = Self::parse_payment(&bounty);
+        let state = Self::bounty_state_of(bounty_id);
 
         with_transaction_result(|| {
             // remove hunter for a bounty
-            Self::remove_hunter_for_bounty(bounty_id);
+            Self::remove_hunters_for_bounty(bounty_id);
             match reason {
                 CloseReason::Outdated => {
+                    ensure!(
+                        (state == BountyState::Accepted) || (state == BountyState::Assigned),
+                        Error::<T>::InvalidState
+                    );
                     let height = Self::approved_height(&bounty_id);
                     let current_height = frame_system::Module::<T>::block_number();
                     if height + Self::outdated_height() > current_height {
@@ -419,6 +464,13 @@ impl<T: Trait> Module<T> {
 
                     BountyStateOf::insert(bounty_id, BountyState::Outdated);
                     Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
+                }
+                CloseReason::Resolved => {
+                    ensure!(
+                        Self::bounty_state_of(bounty_id) == BountyState::Assigned,
+                        Error::<T>::InvalidState
+                    );
+                    // TODO how to resolve?
                 } // TODO other reason
             }
             Ok(())
@@ -463,6 +515,57 @@ impl<T: Trait> Module<T> {
 
         BountyStateOf::insert(bounty_id, BountyState::Submitted);
         Self::deposit_event(RawEvent::Submit(bounty_id));
+        Ok(())
+    }
+
+    fn cancel_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Applying,
+            Error::<T>::InvalidState
+        );
+        ensure!(
+            Self::hunting_for_bounty(&bounty_id, &hunter).is_some(),
+            Error::<T>::NotHunter
+        );
+
+        HuntingForBounty::<T>::remove(&bounty_id, &hunter);
+        HunterBounties::<T>::remove(&hunter, &bounty_id);
+        Ok(())
+    }
+
+    fn resign_from_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Assigned,
+            Error::<T>::InvalidState
+        );
+
+        let expected_hunters = Self::hunted_for_bounty(&bounty_id);
+        ensure!(expected_hunters.contains(&hunter), Error::<T>::NotHunter);
+
+        let remaining = Self::remove_hunter_for_bounty(bounty_id, &hunter)?;
+
+        Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
+        if remaining == 0 {
+            // all hunters have resigned, change current bounty state
+            BountyStateOf::insert(bounty_id, BountyState::Applying);
+            Self::deposit_event(RawEvent::Apply(bounty_id));
+        }
+
+        Ok(())
+    }
+
+    fn remark_bounty_funder_impl(
+        bounty_id: BountyId,
+        hunter: T::AccountId,
+        remark: BountyRemark,
+    ) -> DispatchResult {
+        ensure!(
+            Self::bounty_state_of(bounty_id) == BountyState::Resolved,
+            Error::<T>::InvalidState
+        );
+        let expected_hunters = Self::hunted_for_bounty(&bounty_id);
+        ensure!(expected_hunters.contains(&hunter), Error::<T>::NotHunter);
+
         Ok(())
     }
 }
