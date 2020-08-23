@@ -77,6 +77,8 @@ decl_error! {
         TooManyHuntedBounties,
         /// this hunter already hunt this bounty
         AlreadyHunted,
+        /// this bounty already assgined to this hunter
+        AlreadyAssigned,
         /// not hunter for this bounty
         NotHunter,
 
@@ -94,7 +96,7 @@ decl_event!(
         Reject(BountyId),
         Close(BountyId, Balance),
         HuntBounty(BountyId, AccountId),
-        AssignBounty(BountyId, Vec<AccountId>),
+        AssignBounty(BountyId, AccountId),
         OutdateBounty(BountyId),
         Submit(BountyId),
         Resign(BountyId, AccountId),
@@ -113,12 +115,13 @@ decl_storage! {
         pub BountyStateOf get(fn bounty_state_of): map hasher(identity) BountyId => BountyState;
 
         pub ApprovedHeight get(fn approved_height): map hasher(identity) BountyId => T::BlockNumber;
+        pub AssignedHeight get(fn assigned_height): map hasher(identity) BountyId => T::BlockNumber;
 
         /// mark this bounty has been hunting by who
         pub HuntingForBounty get(fn hunting_for_bounty):
             double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => Option<()>;
-        /// record a hunted bounty has been doing by who(hunters)
-        pub HuntedForBounty get(fn hunted_for_bounty): map hasher(identity) BountyId => Vec<T::AccountId>;
+        /// record a hunted bounty has been doing by who(single hunter)
+        pub HuntedForBounty get(fn hunted_for_bounty): map hasher(identity) BountyId => T::AccountId;
 
         /// record bounties for a hunter, include hunting and hunted(in processing)
         pub HunterBounties get(fn hunter_bounties):
@@ -156,15 +159,11 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn assign_bounty(origin, bounty_id: BountyId, assign_to: Vec<<T::Lookup as StaticLookup>::Source>) -> DispatchResult {
+        fn assign_bounty(origin, bounty_id: BountyId, assign_to: <T::Lookup as StaticLookup>::Source) -> DispatchResult {
             let funder = ensure_signed(origin)?;
-            let mut hunters = Vec::new();
-            for h in assign_to {
-                let assign_to = T::Lookup::lookup(h)?;
-                hunters.push(assign_to);
-            }
+            let assign_to = T::Lookup::lookup(assign_to)?;
 
-            Self::assign_bounty_impl(bounty_id, funder, hunters)
+            Self::assign_bounty_impl(bounty_id, funder, assign_to)
         }
 
         #[weight = 0]
@@ -249,35 +248,38 @@ impl<T: Trait> Module<T> {
 
     fn remove_hunters_for_bounty(bounty_id: BountyId) {
         // remove hunters for a bounty
-        let accounts = HuntingForBounty::<T>::drain_prefix(bounty_id).map(|(a, _)| a);
-        let mut hunters = HuntedForBounty::<T>::take(&bounty_id);
-        hunters.extend(accounts);
+        let mut hunters = HuntingForBounty::<T>::drain_prefix(bounty_id)
+            .map(|(a, _)| a)
+            .collect::<Vec<_>>();
+        let hunted_hunter = HuntedForBounty::<T>::take(&bounty_id);
+        // hunters.extend(accounts);
+        hunters.push(hunted_hunter);
         // remove bounty for hunters
         for hunter in hunters {
             HunterBounties::<T>::remove(hunter, bounty_id)
         }
     }
 
-    fn remove_hunter_for_bounty(
-        bounty_id: BountyId,
-        hunter: &T::AccountId,
-    ) -> result::Result<usize, DispatchError> {
+    fn remove_hunter_for_bounty(bounty_id: BountyId) {
         // 1
-        HuntedForBounty::<T>::try_mutate(
-            bounty_id,
-            |hunters| -> result::Result<usize, DispatchError> {
-                if !hunters.contains(hunter) {
-                    Err(Error::<T>::NotHunter)?
-                }
-                // remove hunter
-                hunters.retain(|item| item != hunter);
-                // 2
-                HunterBounties::<T>::remove(&hunter, bounty_id);
-                // 3
-                HuntingForBounty::<T>::remove(bounty_id, &hunter);
-                Ok(hunters.len())
-            },
-        )
+        let hunter = HuntedForBounty::<T>::take(bounty_id);
+        // 2
+        HunterBounties::<T>::remove(&hunter, bounty_id);
+        // 3
+        HuntingForBounty::<T>::remove(bounty_id, &hunter);
+    }
+
+    fn change_state(bounty_id: BountyId, state: BountyState) {
+        match state {
+            BountyState::Assigned => {
+                AssignedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
+            }
+            BountyState::Applying => {
+                ApprovedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
+            }
+            _ => { /* do nothing*/ }
+        }
+        BountyStateOf::insert(bounty_id, state);
     }
 }
 
@@ -294,13 +296,13 @@ impl<T: Trait> Module<T> {
         // reserve balance and other init
         Self::handle_init_bounty(&creator, &bounty)?;
 
-        BountyStateOf::insert(bounty_id, BountyState::Creating);
         Bounties::<T>::insert(bounty_id, bounty);
         BountiesOf::<T>::mutate(&creator, |list| {
             if !list.contains(&bounty_id) {
                 list.push(bounty_id);
             }
         });
+        Self::change_state(bounty_id, BountyState::Creating);
         Self::deposit_event(RawEvent::CreateBounty(creator, bounty_id));
         Ok(())
     }
@@ -326,7 +328,7 @@ impl<T: Trait> Module<T> {
         Self::check_funder(&caller, &b)?;
         // todo do check
 
-        BountyStateOf::insert(bounty_id, BountyState::Applying);
+        Self::change_state(bounty_id, BountyState::Applying);
         Self::deposit_event(RawEvent::Apply(bounty_id));
         Ok(())
     }
@@ -346,22 +348,21 @@ impl<T: Trait> Module<T> {
         let (id, locked) = Self::parse_payment(&bounty);
 
         Self::check_funder(&funder, &bounty)?;
-        BountyStateOf::insert(bounty_id, BountyState::Closed);
 
         // release reserved balance
         let remaining = T::Currency::unreserve(id, &funder, locked);
         // remove hunter for a bounty
         Self::remove_hunters_for_bounty(bounty_id);
 
+        Self::change_state(bounty_id, BountyState::Closed);
         Self::deposit_event(RawEvent::Close(bounty_id, remaining));
-
         Ok(())
     }
 
     fn assign_bounty_impl(
         bounty_id: BountyId,
         funder: T::AccountId,
-        hunters: Vec<T::AccountId>,
+        hunter: T::AccountId,
     ) -> DispatchResult {
         let state = Self::bounty_state_of(bounty_id);
         ensure!(
@@ -371,28 +372,29 @@ impl<T: Trait> Module<T> {
         let bounty = Self::get_bounty(&bounty_id)?;
         Self::check_funder(&funder, &bounty)?;
 
-        // todo check bounty need single or multiple hunters
-        // judge new hunters are in hunting list
-        for hunter in hunters.iter() {
-            ensure!(
-                Self::hunting_for_bounty(bounty_id, hunter).is_some(),
-                Error::<T>::NotHunter
-            );
-        }
-        HuntedForBounty::<T>::mutate(bounty_id, |old| {
-            for old_hunter in old.iter() {
+        // judge new hunter is in hunting list
+        ensure!(
+            Self::hunting_for_bounty(bounty_id, &hunter).is_some(),
+            Error::<T>::NotHunter
+        );
+        HuntedForBounty::<T>::try_mutate_exists(bounty_id, |option| -> DispatchResult {
+            if let Some(old_hunter) = option {
+                if old_hunter == &hunter {
+                    Err(Error::<T>::AlreadyAssigned)?
+                }
+
                 // change old hunter state, if old not exist, do nothing
                 HunterBounties::<T>::insert(old_hunter, bounty_id, HunterBountyState::Hunting);
             }
-            for new_hunter in hunters.iter() {
-                // set new hunter state
-                HunterBounties::<T>::insert(new_hunter, bounty_id, HunterBountyState::Processing);
-            }
+            // set new hunter state
+            HunterBounties::<T>::insert(&hunter, bounty_id, HunterBountyState::Processing);
             // replace old to new
-            *old = hunters.clone();
-        });
-        BountyStateOf::insert(bounty_id, BountyState::Assigned);
-        Self::deposit_event(RawEvent::AssignBounty(bounty_id, hunters));
+            *option = Some(hunter.clone());
+            Ok(())
+        })?;
+
+        Self::change_state(bounty_id, BountyState::Assigned);
+        Self::deposit_event(RawEvent::AssignBounty(bounty_id, hunter));
         Ok(())
     }
 
@@ -414,7 +416,7 @@ impl<T: Trait> Module<T> {
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
 
-        BountyStateOf::insert(bounty_id, BountyState::Resolved);
+        Self::change_state(bounty_id, BountyState::Resolved);
         Self::deposit_event(RawEvent::Resolve(bounty_id));
         // TODO maybe delete storage to save disk space
 
@@ -430,11 +432,10 @@ impl<T: Trait> Module<T> {
             Error::<T>::InvalidState
         );
         if accepted {
-            BountyStateOf::insert(bounty_id, BountyState::Accepted);
-            ApprovedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
+            Self::change_state(bounty_id, BountyState::Accepted);
             Self::deposit_event(RawEvent::Accept(bounty_id));
         } else {
-            BountyStateOf::insert(bounty_id, BountyState::Rejected);
+            Self::change_state(bounty_id, BountyState::Rejected);
             Self::deposit_event(RawEvent::Reject(bounty_id));
         }
         Ok(())
@@ -454,7 +455,7 @@ impl<T: Trait> Module<T> {
                         (state == BountyState::Accepted) || (state == BountyState::Assigned),
                         Error::<T>::InvalidState
                     );
-                    let height = Self::approved_height(&bounty_id);
+                    let height = Self::assigned_height(&bounty_id);
                     let current_height = frame_system::Module::<T>::block_number();
                     if height + Self::outdated_height() > current_height {
                         Err(Error::<T>::ValidBounty)?;
@@ -462,7 +463,7 @@ impl<T: Trait> Module<T> {
                     // release reserved balance, todo maybe use log to print it
                     let _remaining = T::Currency::unreserve(id, &funder, locked);
 
-                    BountyStateOf::insert(bounty_id, BountyState::Outdated);
+                    Self::change_state(bounty_id, BountyState::Outdated);
                     Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
                 }
                 CloseReason::Resolved => {
@@ -510,10 +511,12 @@ impl<T: Trait> Module<T> {
             Error::<T>::InvalidState
         );
 
-        let expected_hunters = Self::hunted_for_bounty(&bounty_id);
-        ensure!(expected_hunters.contains(&hunter), Error::<T>::NotHunter);
+        ensure!(
+            Self::hunted_for_bounty(&bounty_id) == hunter,
+            Error::<T>::NotHunter
+        );
 
-        BountyStateOf::insert(bounty_id, BountyState::Submitted);
+        Self::change_state(bounty_id, BountyState::Submitted);
         Self::deposit_event(RawEvent::Submit(bounty_id));
         Ok(())
     }
@@ -538,18 +541,17 @@ impl<T: Trait> Module<T> {
             Self::bounty_state_of(bounty_id) == BountyState::Assigned,
             Error::<T>::InvalidState
         );
+        ensure!(
+            Self::hunted_for_bounty(&bounty_id) == hunter,
+            Error::<T>::NotHunter
+        );
 
-        let expected_hunters = Self::hunted_for_bounty(&bounty_id);
-        ensure!(expected_hunters.contains(&hunter), Error::<T>::NotHunter);
-
-        let remaining = Self::remove_hunter_for_bounty(bounty_id, &hunter)?;
+        Self::remove_hunter_for_bounty(bounty_id);
 
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
-        if remaining == 0 {
-            // all hunters have resigned, change current bounty state
-            BountyStateOf::insert(bounty_id, BountyState::Applying);
-            Self::deposit_event(RawEvent::Apply(bounty_id));
-        }
+
+        Self::change_state(bounty_id, BountyState::Applying);
+        Self::deposit_event(RawEvent::Apply(bounty_id));
 
         Ok(())
     }
@@ -563,8 +565,10 @@ impl<T: Trait> Module<T> {
             Self::bounty_state_of(bounty_id) == BountyState::Resolved,
             Error::<T>::InvalidState
         );
-        let expected_hunters = Self::hunted_for_bounty(&bounty_id);
-        ensure!(expected_hunters.contains(&hunter), Error::<T>::NotHunter);
+        ensure!(
+            Self::hunted_for_bounty(&bounty_id) == hunter,
+            Error::<T>::NotHunter
+        );
 
         Ok(())
     }
