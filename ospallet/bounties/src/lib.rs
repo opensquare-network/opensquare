@@ -1,29 +1,25 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod call_impls;
-mod types;
-
+use frame_support::traits::Get;
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage,
-    dispatch::{DispatchError, DispatchResult},
-    ensure,
+    decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult,
     traits::EnsureOrigin,
-    IterableStorageDoubleMap,
 };
 use frame_system::ensure_signed;
 use sp_runtime::{
     traits::{BlakeTwo256, Hash, SaturatedConversion, StaticLookup},
     Percent,
 };
-use sp_std::{marker::PhantomData, prelude::*, result};
+use sp_std::{marker::PhantomData, prelude::*};
 
+use opensquare_primitives::BountyId;
 // orml
 use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
-use opensquare_primitives::BountyId;
+use crate::types::{Bounty, BountyRemark, BountyState, CloseReason, HunterBountyState};
 
-use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
-use frame_support::traits::Get;
+mod call_impls;
+mod types;
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as MultiCurrency<<T as frame_system::Trait>::AccountId>>::Balance;
@@ -220,66 +216,5 @@ decl_module! {
             Self::remark_bounty_funder_impl(bounty_id, hunter, remark)
         }
 
-    }
-}
-
-impl<T: Trait> Module<T> {
-    fn get_bounty(id: &BountyId) -> result::Result<BountyOf<T>, DispatchError> {
-        let b = Self::bounties(id).ok_or(Error::<T>::NotExisted)?;
-        Ok(b)
-    }
-
-    fn get_funder(bounty: &BountyOf<T>) -> T::AccountId {
-        match bounty {
-            Bounty::V1(ref metadata) => metadata.owner.clone(),
-        }
-    }
-
-    fn check_funder(caller: &T::AccountId, bounty: &BountyOf<T>) -> DispatchResult {
-        let funder = Self::get_funder(bounty);
-        ensure!(&funder == caller, Error::<T>::NotFunder);
-        Ok(())
-    }
-
-    fn parse_payment(bounty: &BountyOf<T>) -> (CurrencyIdOf<T>, BalanceOf<T>) {
-        match bounty {
-            Bounty::V1(ref metadata) => (metadata.currency_id, metadata.payment),
-        }
-    }
-
-    fn remove_hunters_for_bounty(bounty_id: BountyId) {
-        // remove hunters for a bounty
-        let mut hunters = HuntingForBounty::<T>::drain_prefix(bounty_id)
-            .map(|(a, _)| a)
-            .collect::<Vec<_>>();
-        let hunted_hunter = HuntedForBounty::<T>::take(&bounty_id);
-        // hunters.extend(accounts);
-        hunters.push(hunted_hunter);
-        // remove bounty for hunters
-        for hunter in hunters {
-            HunterBounties::<T>::remove(hunter, bounty_id)
-        }
-    }
-
-    fn remove_hunter_for_bounty(bounty_id: BountyId) {
-        // 1
-        let hunter = HuntedForBounty::<T>::take(bounty_id);
-        // 2
-        HunterBounties::<T>::remove(&hunter, bounty_id);
-        // 3
-        HuntingForBounty::<T>::remove(bounty_id, &hunter);
-    }
-
-    fn change_state(bounty_id: BountyId, state: BountyState) {
-        match state {
-            BountyState::Assigned => {
-                AssignedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
-            }
-            BountyState::Applying => {
-                ApprovedHeight::<T>::insert(bounty_id, frame_system::Module::<T>::block_number());
-            }
-            _ => { /* do nothing*/ }
-        }
-        BountyStateOf::insert(bounty_id, state);
     }
 }
