@@ -20,7 +20,6 @@ pub enum BountyCategory {
 #[derive(PartialEq, Eq, Clone, Copy, Encode, Decode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyState {
-    Creating,
     Applying,
     Accepted, // Accepted by the Council
     Rejected, // Rejected by the Council
@@ -34,7 +33,7 @@ pub enum BountyState {
 
 impl Default for BountyState {
     fn default() -> Self {
-        BountyState::Creating
+        BountyState::Applying
     }
 }
 
@@ -59,4 +58,32 @@ pub struct BountyMetaData<AccountId, CurrencyId, Balance> {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct SettingData {
     pub category: BountyCategory,
+}
+
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum CloseReason {
+    Outdated,
+}
+
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum HunterBountyState {
+    Hunting,
+    Processing,
+}
+impl Default for HunterBountyState {
+    fn default() -> Self {
+        Self::Hunting
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum BountyRemark {
+    A,
+    B,
+    C,
+    D,
+    E,
 }

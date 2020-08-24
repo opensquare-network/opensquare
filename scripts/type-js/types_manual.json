@@ -15,7 +15,6 @@
     "BountyId": "H256",
     "BountyState": {
         "_enum": [
-            "Creating",
             "Applying",
             "Accepted",
             "Rejected",
@@ -46,5 +45,26 @@
     },
     "SettingData": {
         "category": "BountyCategory"
+    },
+    "CloseReason": {
+        "_enum": [
+            "Outdated",
+            "Resolved"
+        ]
+    },
+    "HunterBountyState": {
+        "_enum": [
+            "Hunting",
+            "Processing"
+        ]
+    },
+    "BountyRemark": {
+        "_enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ]
     }
 }

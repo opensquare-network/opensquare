@@ -12,7 +12,7 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentityLookup, NumberFor
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-    ApplyExtrinsicResult,
+    ApplyExtrinsicResult, Percent,
 };
 use sp_std::prelude::*;
 
@@ -267,10 +267,21 @@ impl ospallet_system::Trait for Runtime {
     type Event = Event;
 }
 
+parameter_types! {
+    pub const CouncilFee: Percent = Percent::from_percent(5);
+    pub CouncilAccount: AccountId = council(); // TODO tmp use a council function
+}
+
+fn council() -> AccountId {
+    OsSystem::tmp_council()[0].clone()
+}
+
 impl ospallet_bounties::Trait for Runtime {
     type Event = Event;
     type Currency = Currencies;
     type CouncilOrigin = EnsureRootOrCouncil;
+    type CouncilAccount = CouncilAccount;
+    type CouncilFee = CouncilFee;
     type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
 }
 
