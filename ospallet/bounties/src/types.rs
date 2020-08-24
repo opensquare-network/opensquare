@@ -64,8 +64,6 @@ pub struct SettingData {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum CloseReason {
     Outdated,
-    Resolved,
-    // TODO other reason
 }
 
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]

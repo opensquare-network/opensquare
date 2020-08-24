@@ -475,13 +475,6 @@ impl<T: Trait> Module<T> {
 
                     Self::change_state(bounty_id, BountyState::Outdated);
                     Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
-                }
-                CloseReason::Resolved => {
-                    ensure!(
-                        Self::bounty_state_of(bounty_id) == BountyState::Assigned,
-                        Error::<T>::InvalidState
-                    );
-                    // TODO how to resolve?
                 } // TODO other reason
             }
             Ok(())
