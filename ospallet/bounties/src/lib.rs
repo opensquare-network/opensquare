@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod types;
 mod call_impls;
+mod types;
 
 use frame_support::{
     decl_error, decl_event, decl_module, decl_storage,
@@ -23,7 +23,7 @@ use orml_traits::{MultiCurrency, MultiReservableCurrency};
 use opensquare_primitives::BountyId;
 
 use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
-use frame_support::traits::{Get};
+use frame_support::traits::Get;
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as MultiCurrency<<T as frame_system::Trait>::AccountId>>::Balance;

@@ -1,15 +1,12 @@
-use frame_support::{
-    dispatch::DispatchResult,
-    ensure,
-};
+use frame_support::{dispatch::DispatchResult, ensure};
 
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
 use orml_utilities::with_transaction_result;
 
-use crate::{Error, Module, RawEvent, Trait};
 use crate::types::BountyState;
 use crate::types::CloseReason;
+use crate::{Error, Module, RawEvent, Trait};
 
 impl<T: Trait> Module<T> {
     pub fn examine_bounty_impl(bounty_id: BountyId, accepted: bool) -> DispatchResult {

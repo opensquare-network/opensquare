@@ -7,16 +7,11 @@ use frame_support::{
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
 
-use crate::{
-    Bounties,
-    BountiesOf,
-    BountyIdFor,
-    BountyStateOf,
-    Error,
-    HuntedForBounty, HunterBounties, Module, RawEvent,
-    Trait,
-};
 use crate::types::{BountyOf, BountyRemark, BountyState, HunterBountyState};
+use crate::{
+    Bounties, BountiesOf, BountyIdFor, BountyStateOf, Error, HuntedForBounty, HunterBounties,
+    Module, RawEvent, Trait,
+};
 
 impl<T: Trait> Module<T> {
     pub fn create_bounty_impl(creator: T::AccountId, bounty: BountyOf<T>) -> DispatchResult {
