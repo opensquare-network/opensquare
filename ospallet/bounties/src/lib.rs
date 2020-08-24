@@ -89,7 +89,8 @@ decl_error! {
         AlreadyAssigned,
         /// not hunter for this bounty
         NotHunter,
-
+        /// not assignee of this bounty
+        NotAssignee,
     }
 }
 decl_event!(
@@ -525,7 +526,7 @@ impl<T: Trait> Module<T> {
 
         ensure!(
             Self::hunted_for_bounty(&bounty_id) == hunter,
-            Error::<T>::NotHunter
+            Error::<T>::NotAssignee
         );
 
         Self::change_state(bounty_id, BountyState::Submitted);
