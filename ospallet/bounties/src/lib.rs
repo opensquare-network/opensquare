@@ -491,8 +491,11 @@ impl<T: Trait> Module<T> {
 // hunter call
 impl<T: Trait> Module<T> {
     fn hunt_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
+        let state = Self::bounty_state_of(bounty_id);
         ensure!(
-            Self::bounty_state_of(bounty_id) == BountyState::Accepted,
+            (state == BountyState::Accepted)
+            || (state == BountyState::Assigned)
+            || (state == BountyState::Submitted),
             Error::<T>::InvalidState
         );
 
