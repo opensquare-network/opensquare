@@ -1,5 +1,5 @@
 #[cfg(feature = "std")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "std")]
 #[derive(Serialize, Deserialize)]
