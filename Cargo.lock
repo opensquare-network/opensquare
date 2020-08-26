@@ -3049,6 +3049,7 @@ dependencies = [
  "orml-oracle",
  "orml-tokens",
  "ospallet-bounties",
+ "ospallet-reputation",
  "ospallet-system",
  "pallet-aura",
  "pallet-authorship",
@@ -3179,11 +3180,22 @@ dependencies = [
  "opensquare-primitives",
  "orml-traits",
  "orml-utilities",
+ "ospallet-reputation",
  "ospallet-support",
  "parity-scale-codec",
  "serde",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "ospallet-reputation"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
 ]
 
 [[package]]

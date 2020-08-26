@@ -21,6 +21,7 @@ orml-utilities = { path = "../../vendor/orml/utilities", default-features = fals
 
 opensquare-primitives = { path = "../../primitives", default-features = false }
 ospallet-support = { path = "../support", default-features = false }
+ospallet-reputation = { path = "../reputation", default-features = false }
 
 [features]
 default = ["std"]
