@@ -55,6 +55,7 @@ pub use opensquare_primitives::{
 };
 
 pub mod constants;
+
 pub use constants::{currency::*, time::*};
 
 impl_opaque_keys! {
@@ -168,7 +169,7 @@ impl pallet_grandpa::Trait for Runtime {
     type KeyOwnerProofSystem = ();
 
     type KeyOwnerProof =
-        <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+    <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
 
     type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
         KeyTypeId,
@@ -261,7 +262,7 @@ impl orml_oracle::Trait for Runtime {
 }
 
 type EnsureRootOrCouncil =
-    EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
+EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
 
 impl ospallet_system::Trait for Runtime {
     type Event = Event;
@@ -284,6 +285,8 @@ impl ospallet_bounties::Trait for Runtime {
     type CouncilFee = CouncilFee;
     type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
 }
+
+impl ospallet_reputation::Trait for Runtime {}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -308,6 +311,7 @@ construct_runtime!(
 
         OsSystem: ospallet_system::{Module, Call, Config<T>, Storage, Event<T>},
         OsBounties: ospallet_bounties::{Module, Call, Storage, Event<T>},
+        OsReputation: ospallet_reputation::{Module, Storage}
     }
 );
 

@@ -53,7 +53,7 @@ where
     }
 }
 
-pub trait Trait: frame_system::Trait {
+pub trait Trait: ospallet_reputation::Trait {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 
