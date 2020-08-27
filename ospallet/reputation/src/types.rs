@@ -1,17 +1,15 @@
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
-#[allow(dead_code)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-enum BountyResolveCollaborationResult {
+pub enum BountyResolveCollaborationResult {
     Success,
     Fail,
     GiveUp,
 }
 
-#[allow(dead_code)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-enum BountyRemarkCollaborationResult {
+pub enum BountyRemarkCollaborationResult {
     Bad,
     NotGood,
     Fine,
@@ -19,13 +17,9 @@ enum BountyRemarkCollaborationResult {
     Perfect,
 }
 
-#[allow(dead_code)]
+// Behavior represent the general collaboration result
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize), serde(untagged))]
-enum CollaborationResult {
+pub enum Behavior {
     BountyResolve(BountyResolveCollaborationResult),
     BountyRemark(BountyRemarkCollaborationResult),
 }
-
-#[cfg(feature = "std")]
-#[allow(dead_code)]
-type Behavior = CollaborationResult;
