@@ -9,7 +9,7 @@ pub trait Trait: system::Trait {}
 
 decl_storage! {
     trait Store for Module<T: Trait> as OsReputation {
-        pub Reputation get(fn reputation): map hasher(blake2_128_concat) T::AccountId => u128;
+        pub BehaviorScore get(fn behavior_score): map hasher(blake2_128_concat) T::AccountId => i128;
     }
 }
 
