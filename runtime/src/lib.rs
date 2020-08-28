@@ -26,7 +26,6 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use frame_system::{EnsureOneOf, EnsureRoot, EnsureSignedBy};
-use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
 
 // orml
 use orml_currencies::BasicCurrencyAdapter;
@@ -169,7 +168,7 @@ impl pallet_grandpa::Trait for Runtime {
     type KeyOwnerProofSystem = ();
 
     type KeyOwnerProof =
-    <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+        <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
 
     type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
         KeyTypeId,
@@ -233,6 +232,7 @@ impl orml_currencies::Trait for Runtime {
     type MultiCurrency = Tokens;
     type NativeCurrency = BasicCurrencyAdapter<Balances, Balance, Balance, Amount, BlockNumber>;
     type GetNativeCurrencyId = GetNativeCurrencyId;
+    type WeightInfo = ();
 }
 
 // orml
@@ -242,6 +242,7 @@ impl orml_tokens::Trait for Runtime {
     type Amount = Amount;
     type CurrencyId = CurrencyId;
     type OnReceived = ();
+    type WeightInfo = ();
 }
 
 parameter_types! {
@@ -262,7 +263,7 @@ impl orml_oracle::Trait for Runtime {
 }
 
 type EnsureRootOrCouncil =
-EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
+    EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
 
 impl ospallet_system::Trait for Runtime {
     type Event = Event;
@@ -463,12 +464,11 @@ impl_runtime_apis! {
         }
     }
 
-    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
-        Block,
-        Balance,
-        UncheckedExtrinsic,
-    > for Runtime {
-        fn query_info(uxt: UncheckedExtrinsic, len: u32) -> RuntimeDispatchInfo<Balance> {
+    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
+        fn query_info(
+            uxt: <Block as BlockT>::Extrinsic,
+            len: u32,
+        ) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
             TransactionPayment::query_info(uxt, len)
         }
     }
