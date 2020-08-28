@@ -285,6 +285,7 @@ impl ospallet_bounties::Trait for Runtime {
     type CouncilAccount = CouncilAccount;
     type CouncilFee = CouncilFee;
     type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
+    type BountyResolved = ();
 }
 
 impl ospallet_reputation::Trait for Runtime {}
