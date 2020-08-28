@@ -16,7 +16,7 @@ use opensquare_primitives::BountyId;
 // orml
 use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
-use crate::types::{Bounty, BountyRemark, BountyState, CloseReason, HunterBountyState};
+use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
 
 mod call_impls;
 mod types;
@@ -53,6 +53,17 @@ where
     }
 }
 
+pub trait BountyResolved<T: Trait> {
+    fn after_bounty_resolved(_bounty: &BountyOf<T>) {}
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(30)]
+impl<T: Trait> BountyResolved<T> for Tuple {
+    fn after_bounty_resolved(_bounty: &BountyOf<T>) {
+        for_tuples!( #( Tuple::after_bounty_resolved(_bounty); )* );
+    }
+}
+
 pub trait Trait: ospallet_reputation::Trait {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
@@ -66,6 +77,8 @@ pub trait Trait: ospallet_reputation::Trait {
     type CouncilFee: Get<Percent>;
 
     type DetermineBountyId: BountyIdFor<Self::AccountId>;
+
+    type BountyResolved: BountyResolved<Self>;
 }
 
 decl_error! {

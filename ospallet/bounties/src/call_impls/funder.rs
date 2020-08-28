@@ -2,6 +2,7 @@ use frame_support::{
     dispatch::DispatchResult,
     ensure,
     storage::{StorageDoubleMap, StorageMap},
+    traits::{BalanceStatus, Get},
 };
 
 use opensquare_primitives::BountyId;
@@ -9,8 +10,8 @@ use orml_traits::MultiReservableCurrency;
 
 use crate::types::{BountyOf, BountyRemark, BountyState, HunterBountyState};
 use crate::{
-    Bounties, BountiesOf, BountyIdFor, BountyStateOf, Error, HuntedForBounty, HunterBounties,
-    Module, RawEvent, Trait,
+    Bounties, BountiesOf, BountyIdFor, BountyResolved, BountyStateOf, Error, HuntedForBounty,
+    HunterBounties, Module, RawEvent, Trait,
 };
 
 impl<T: Trait> Module<T> {
@@ -129,27 +130,29 @@ impl<T: Trait> Module<T> {
         // TODO maybe other check
 
         // release currency
-        let _hunter = Self::hunted_for_bounty(&bounty_id);
-        let (_id, _locked) = Self::parse_payment(&bounty);
+        let hunter = Self::hunted_for_bounty(&bounty_id);
+        let (id, locked) = Self::parse_payment(&bounty);
 
-        // todo, can't impl yet
-        // let fee =T::CouncilFee::get() *  locked ;
-        // let council_account = T::CouncilAccount::get();
-        // // todo may be use log to print remaining
-        // let _ = T::Currency::repatriate_reserved(
-        //     id,
-        //     &funder,
-        //     &hunter,
-        //     locked - fee,
-        //     BalanceStatus::Free,
-        // )?;
-        // let _ = T::Currency::repatriate_reserved(
-        //     id,
-        //     &council_account,
-        //     &hunter,
-        //     fee,
-        //     BalanceStatus::Free,
-        // )?;
+        let fee = T::CouncilFee::get() * locked;
+        let council_account = T::CouncilAccount::get();
+        // todo may be use log to print remaining
+        let _ = T::Currency::repatriate_reserved(
+            id,
+            &funder,
+            &hunter,
+            locked - fee,
+            BalanceStatus::Free,
+        )?;
+        let _ = T::Currency::repatriate_reserved(
+            id,
+            &council_account,
+            &hunter,
+            fee,
+            BalanceStatus::Free,
+        )?;
+
+        // trigger
+        T::BountyResolved::after_bounty_resolved(&bounty);
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
