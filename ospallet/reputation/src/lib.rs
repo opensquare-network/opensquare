@@ -11,6 +11,7 @@ pub trait Trait: system::Trait {}
 
 decl_storage! {
     trait Store for Module<T: Trait> as OsReputation {
+        // TODO: change the value to BigInt
         pub BehaviorScore get(fn behavior_score): map hasher(blake2_128_concat) T::AccountId => i128;
     }
 }
@@ -21,7 +22,18 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    pub fn get_behavior_score(behavior: Behavior) -> i128 {
+    pub fn add_behavior_score(target: &T::AccountId, score: i128) {
+        let pre_score = Self::behavior_score(target);
+        // FIXME: Apply safe math
+        BehaviorScore::<T>::insert(target, pre_score + score)
+    }
+
+    pub fn add_behavior_score_by_behavior(target: &T::AccountId, behavior: &Behavior) {
+        let score = Self::get_behavior_score(behavior);
+        Self::add_behavior_score(target, score)
+    }
+
+    pub fn get_behavior_score(behavior: &Behavior) -> i128 {
         return match behavior {
             Behavior::BountyResolve(BountyResolveCollaborationResult::Success) => 10,
             Behavior::BountyResolve(BountyResolveCollaborationResult::Fail) => -2,
