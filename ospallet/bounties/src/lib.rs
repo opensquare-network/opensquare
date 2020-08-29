@@ -214,7 +214,7 @@ decl_module! {
         #[weight = 0]
         fn cancel_bounty(origin, bounty_id: BountyId) -> DispatchResult {
             let hunter = ensure_signed(origin)?;
-            Self::cancel_bounty_hunting_imple(bounty_id, hunter)
+            Self::cancel_bounty_hunting_impl(bounty_id, hunter)
         }
 
         #[weight = 0]

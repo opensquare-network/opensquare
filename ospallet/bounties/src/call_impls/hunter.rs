@@ -51,7 +51,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn cancel_bounty_hunting_imple(
+    pub fn cancel_bounty_hunting_impl(
         bounty_id: BountyId,
         hunter: T::AccountId,
     ) -> DispatchResult {
