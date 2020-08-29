@@ -50,6 +50,9 @@ impl<T: Trait> Module<T> {
     }
 
     pub fn close_bounty_impl(funder: T::AccountId, bounty_id: BountyId) -> DispatchResult {
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_funder(&funder, &bounty)?;
+
         // No meaning to close a rejected bounty
         let state = Self::bounty_state_of(bounty_id);
         ensure!(
@@ -60,11 +63,7 @@ impl<T: Trait> Module<T> {
             Error::<T>::InvalidState
         );
 
-        let bounty = Self::get_bounty(&bounty_id)?;
         let (id, locked) = Self::parse_payment(&bounty);
-
-        Self::check_funder(&funder, &bounty)?;
-
         // release reserved balance
         let remaining = T::Currency::unreserve(id, &funder, locked);
         // remove hunter for a bounty
@@ -80,13 +79,13 @@ impl<T: Trait> Module<T> {
         funder: T::AccountId,
         hunter: T::AccountId,
     ) -> DispatchResult {
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_funder(&funder, &bounty)?;
         let state = Self::bounty_state_of(bounty_id);
         ensure!(
             (state == BountyState::Accepted) || (state == BountyState::Assigned), // could be assigned again
             Error::<T>::InvalidState
         );
-        let bounty = Self::get_bounty(&bounty_id)?;
-        Self::check_funder(&funder, &bounty)?;
 
         // judge new hunter is in hunting list
         ensure!(
@@ -120,12 +119,12 @@ impl<T: Trait> Module<T> {
         funder: T::AccountId,
         _remark: BountyRemark,
     ) -> DispatchResult {
+        let bounty = Self::get_bounty(&bounty_id)?;
+        Self::check_funder(&funder, &bounty)?;
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Submitted,
             Error::<T>::InvalidState
         );
-        let bounty = Self::get_bounty(&bounty_id)?;
-        Self::check_funder(&funder, &bounty)?;
 
         // TODO maybe other check
 
