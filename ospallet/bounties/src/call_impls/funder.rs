@@ -144,8 +144,8 @@ impl<T: Trait> Module<T> {
         )?;
         let _ = T::Currency::repatriate_reserved(
             id,
+            &funder,
             &council_account,
-            &hunter,
             fee,
             BalanceStatus::Free,
         )?;
