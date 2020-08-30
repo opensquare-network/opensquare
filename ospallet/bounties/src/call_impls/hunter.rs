@@ -3,8 +3,11 @@ use frame_support::{
 };
 
 use opensquare_primitives::BountyId;
+use ospallet_reputation::{
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult, ReputationBuilder,
+};
 
-use crate::types::{BountyRemark, BountyState, HunterBountyState};
+use crate::types::{BountyState, HunterBountyState};
 use crate::{Error, HunterBounties, HuntingForBounty, Module, RawEvent, Trait};
 
 impl<T: Trait> Module<T> {
@@ -51,10 +54,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn cancel_bounty_hunting_impl(
-        bounty_id: BountyId,
-        hunter: T::AccountId,
-    ) -> DispatchResult {
+    pub fn cancel_bounty_hunting_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Applying,
             Error::<T>::InvalidState
@@ -81,6 +81,11 @@ impl<T: Trait> Module<T> {
 
         Self::remove_hunter_for_bounty(bounty_id);
 
+        T::ReputationBuilder::add_behavior_score_by_behavior(
+            &hunter,
+            &Behavior::BountyResolve(BountyResolveCollaborationResult::Fail),
+        );
+
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
 
         Self::change_state(bounty_id, BountyState::Accepted);
@@ -92,7 +97,7 @@ impl<T: Trait> Module<T> {
     pub fn remark_bounty_funder_impl(
         bounty_id: BountyId,
         hunter: T::AccountId,
-        _remark: BountyRemark,
+        _remark: BountyRemarkCollaborationResult,
     ) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Resolved,
@@ -101,6 +106,14 @@ impl<T: Trait> Module<T> {
         ensure!(
             Self::hunted_for_bounty(&bounty_id) == hunter,
             Error::<T>::NotHunter
+        );
+
+        let bounty = Self::get_bounty(&bounty_id)?;
+        let funder = Self::get_funder(&bounty);
+
+        T::ReputationBuilder::add_behavior_score_by_behavior(
+            &funder,
+            &Behavior::BountyRemark(_remark),
         );
 
         Ok(())

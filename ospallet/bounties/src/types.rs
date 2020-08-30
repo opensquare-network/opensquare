@@ -77,13 +77,3 @@ impl Default for HunterBountyState {
         Self::Hunting
     }
 }
-
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub enum BountyRemark {
-    A,
-    B,
-    C,
-    D,
-    E,
-}

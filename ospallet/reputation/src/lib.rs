@@ -3,7 +3,9 @@
 use frame_support::{decl_module, decl_storage};
 use frame_system as system;
 
-use crate::types::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
+pub use crate::types::{
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult, ReputationBuilder,
+};
 
 mod types;
 
@@ -27,17 +29,19 @@ impl<T: Trait> Module<T> {
         // FIXME: Apply safe math
         BehaviorScore::<T>::insert(target, pre_score + score)
     }
+}
 
-    pub fn add_behavior_score_by_behavior(target: &T::AccountId, behavior: &Behavior) {
+impl<T: Trait> ReputationBuilder<T::AccountId> for Module<T> {
+    // TODO: calc behavior score separately for funder and hunter
+    fn add_behavior_score_by_behavior(target: &T::AccountId, behavior: &Behavior) {
         let score = Self::get_behavior_score(behavior);
         Self::add_behavior_score(target, score)
     }
 
-    pub fn get_behavior_score(behavior: &Behavior) -> i128 {
+    fn get_behavior_score(behavior: &Behavior) -> i128 {
         return match behavior {
             Behavior::BountyResolve(BountyResolveCollaborationResult::Success) => 10,
             Behavior::BountyResolve(BountyResolveCollaborationResult::Fail) => -2,
-            Behavior::BountyResolve(BountyResolveCollaborationResult::GiveUp) => -4,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::Bad) => -2,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::NotGood) => 0,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::Fine) => 1,

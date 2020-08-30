@@ -286,6 +286,7 @@ impl ospallet_bounties::Trait for Runtime {
     type CouncilFee = CouncilFee;
     type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
     type BountyResolved = ();
+    type ReputationBuilder = OsReputation;
 }
 
 impl ospallet_reputation::Trait for Runtime {}
