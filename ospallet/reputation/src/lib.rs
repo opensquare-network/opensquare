@@ -40,7 +40,6 @@ impl<T: Trait> Module<T> {
         return match behavior {
             Behavior::BountyResolve(BountyResolveCollaborationResult::Success) => 10,
             Behavior::BountyResolve(BountyResolveCollaborationResult::Fail) => -2,
-            Behavior::BountyResolve(BountyResolveCollaborationResult::GiveUp) => -4,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::Bad) => -2,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::NotGood) => 0,
             Behavior::BountyRemark(BountyRemarkCollaborationResult::Fine) => 1,

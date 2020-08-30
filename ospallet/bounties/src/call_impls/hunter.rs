@@ -83,7 +83,7 @@ impl<T: Trait> Module<T> {
 
         ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
             &hunter,
-            &Behavior::BountyResolve(BountyResolveCollaborationResult::GiveUp),
+            &Behavior::BountyResolve(BountyResolveCollaborationResult::Fail),
         );
 
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));

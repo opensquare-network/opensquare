@@ -8,7 +8,6 @@ use sp_runtime::RuntimeDebug;
 pub enum BountyResolveCollaborationResult {
     Success,
     Fail,
-    GiveUp,
 }
 
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
