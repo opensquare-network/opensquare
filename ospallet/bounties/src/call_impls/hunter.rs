@@ -4,7 +4,7 @@ use frame_support::{
 
 use opensquare_primitives::BountyId;
 use ospallet_reputation::{
-    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult,
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult, ReputationBuilder,
 };
 
 use crate::types::{BountyState, HunterBountyState};
@@ -81,7 +81,7 @@ impl<T: Trait> Module<T> {
 
         Self::remove_hunter_for_bounty(bounty_id);
 
-        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+        T::ReputationBuilder::add_behavior_score_by_behavior(
             &hunter,
             &Behavior::BountyResolve(BountyResolveCollaborationResult::Fail),
         );
@@ -111,7 +111,7 @@ impl<T: Trait> Module<T> {
         let bounty = Self::get_bounty(&bounty_id)?;
         let funder = Self::get_funder(&bounty);
 
-        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+        T::ReputationBuilder::add_behavior_score_by_behavior(
             &funder,
             &Behavior::BountyRemark(_remark),
         );

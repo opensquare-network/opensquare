@@ -18,7 +18,7 @@ use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
 use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
 
-use ospallet_reputation::BountyRemarkCollaborationResult;
+use ospallet_reputation::{BountyRemarkCollaborationResult, ReputationBuilder};
 
 mod call_impls;
 mod types;
@@ -66,7 +66,7 @@ impl<T: Trait> BountyResolved<T> for Tuple {
     }
 }
 
-pub trait Trait: ospallet_reputation::Trait {
+pub trait Trait: frame_system::Trait {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 
@@ -81,6 +81,8 @@ pub trait Trait: ospallet_reputation::Trait {
     type DetermineBountyId: BountyIdFor<Self::AccountId>;
 
     type BountyResolved: BountyResolved<Self>;
+
+    type ReputationBuilder: ReputationBuilder<Self::AccountId>;
 }
 
 decl_error! {

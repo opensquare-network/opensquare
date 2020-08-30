@@ -8,7 +8,7 @@ use frame_support::{
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
 use ospallet_reputation::{
-    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult,
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult, ReputationBuilder,
 };
 
 use crate::types::{BountyOf, BountyState, HunterBountyState};
@@ -158,11 +158,11 @@ impl<T: Trait> Module<T> {
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
-        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+        T::ReputationBuilder::add_behavior_score_by_behavior(
             &hunter,
             &Behavior::BountyResolve(BountyResolveCollaborationResult::Success),
         );
-        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+        T::ReputationBuilder::add_behavior_score_by_behavior(
             &hunter,
             &Behavior::BountyRemark(_remark),
         );

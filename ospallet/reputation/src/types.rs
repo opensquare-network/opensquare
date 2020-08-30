@@ -26,3 +26,9 @@ pub enum Behavior {
     BountyResolve(BountyResolveCollaborationResult),
     BountyRemark(BountyRemarkCollaborationResult),
 }
+
+pub trait ReputationBuilder<AccountId> {
+    fn add_behavior_score_by_behavior(target: &AccountId, behavior: &Behavior);
+
+    fn get_behavior_score(behavior: &Behavior) -> i128;
+}
