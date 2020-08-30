@@ -3,7 +3,7 @@ use frame_support::{
 };
 
 use opensquare_primitives::BountyId;
-use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult};
+use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
 
 use crate::{Error, HunterBounties, HuntingForBounty, Module, RawEvent, Trait};
 use crate::types::{BountyState, HunterBountyState};
@@ -81,6 +81,11 @@ impl<T: Trait> Module<T> {
         );
 
         Self::remove_hunter_for_bounty(bounty_id);
+
+        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+            &hunter,
+            &Behavior::BountyResolve(BountyResolveCollaborationResult::GiveUp),
+        );
 
         Self::deposit_event(RawEvent::Resign(bounty_id, hunter));
 
