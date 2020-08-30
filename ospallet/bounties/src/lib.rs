@@ -16,7 +16,9 @@ use opensquare_primitives::BountyId;
 // orml
 use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
-use crate::types::{Bounty, BountyOf, BountyRemark, BountyState, CloseReason, HunterBountyState};
+use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
+
+use ospallet_reputation::{BountyRemarkCollaborationResult};
 
 mod call_impls;
 mod types;
@@ -177,7 +179,7 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn resolve_bounty_and_remark(origin, bounty_id: BountyId, remark: BountyRemark) -> DispatchResult {
+        fn resolve_bounty_and_remark(origin, bounty_id: BountyId, remark: BountyRemarkCollaborationResult) -> DispatchResult {
             let who = ensure_signed(origin)?;
             Self::resolve_bounty_and_remark_impl(bounty_id, who, remark)?;
             Ok(())
@@ -224,7 +226,7 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn remark_bounty_funder(origin, bounty_id: BountyId, remark: BountyRemark) -> DispatchResult {
+        fn remark_bounty_funder(origin, bounty_id: BountyId, remark: BountyRemarkCollaborationResult) -> DispatchResult {
             let hunter = ensure_signed(origin)?;
             Self::remark_bounty_funder_impl(bounty_id, hunter, remark)
         }

@@ -1,5 +1,8 @@
+use codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
+
+use sp_runtime::RuntimeDebug;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyResolveCollaborationResult {
@@ -8,6 +11,7 @@ pub enum BountyResolveCollaborationResult {
     GiveUp,
 }
 
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyRemarkCollaborationResult {
     Bad,

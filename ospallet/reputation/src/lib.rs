@@ -3,7 +3,7 @@
 use frame_support::{decl_module, decl_storage};
 use frame_system as system;
 
-use crate::types::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
+pub use crate::types::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
 
 mod types;
 
@@ -28,6 +28,7 @@ impl<T: Trait> Module<T> {
         BehaviorScore::<T>::insert(target, pre_score + score)
     }
 
+    // TODO: calc behavior score separately for funder and hunter
     pub fn add_behavior_score_by_behavior(target: &T::AccountId, behavior: &Behavior) {
         let score = Self::get_behavior_score(behavior);
         Self::add_behavior_score(target, score)

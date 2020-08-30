@@ -1,11 +1,12 @@
 use frame_support::{
-    dispatch::DispatchResult, ensure, storage::StorageDoubleMap, IterableStorageDoubleMap,
+    dispatch::DispatchResult, ensure, IterableStorageDoubleMap, storage::StorageDoubleMap,
 };
 
 use opensquare_primitives::BountyId;
+use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult};
 
-use crate::types::{BountyRemark, BountyState, HunterBountyState};
 use crate::{Error, HunterBounties, HuntingForBounty, Module, RawEvent, Trait};
+use crate::types::{BountyState, HunterBountyState};
 
 impl<T: Trait> Module<T> {
     pub fn hunt_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
@@ -92,7 +93,7 @@ impl<T: Trait> Module<T> {
     pub fn remark_bounty_funder_impl(
         bounty_id: BountyId,
         hunter: T::AccountId,
-        _remark: BountyRemark,
+        _remark: BountyRemarkCollaborationResult,
     ) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Resolved,
@@ -101,6 +102,14 @@ impl<T: Trait> Module<T> {
         ensure!(
             Self::hunted_for_bounty(&bounty_id) == hunter,
             Error::<T>::NotHunter
+        );
+
+        let bounty = Self::get_bounty(&bounty_id)?;
+        let funder = Self::get_funder(&bounty);
+
+        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+            &funder,
+            &Behavior::BountyRemark(_remark),
         );
 
         Ok(())

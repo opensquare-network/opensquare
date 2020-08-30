@@ -7,12 +7,13 @@ use frame_support::{
 
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
+use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
 
-use crate::types::{BountyOf, BountyRemark, BountyState, HunterBountyState};
 use crate::{
     Bounties, BountiesOf, BountyIdFor, BountyResolved, BountyStateOf, Error, HuntedForBounty,
     HunterBounties, Module, RawEvent, Trait,
 };
+use crate::types::{BountyOf, BountyState, HunterBountyState};
 
 impl<T: Trait> Module<T> {
     pub fn create_bounty_impl(creator: T::AccountId, bounty: BountyOf<T>) -> DispatchResult {
@@ -117,7 +118,7 @@ impl<T: Trait> Module<T> {
     pub fn resolve_bounty_and_remark_impl(
         bounty_id: BountyId,
         funder: T::AccountId,
-        _remark: BountyRemark,
+        _remark: BountyRemarkCollaborationResult,
     ) -> DispatchResult {
         let bounty = Self::get_bounty(&bounty_id)?;
         Self::check_funder(&funder, &bounty)?;
@@ -155,6 +156,14 @@ impl<T: Trait> Module<T> {
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
+        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+            &hunter,
+            &Behavior::BountyResolve(BountyResolveCollaborationResult::Success),
+        );
+        ospallet_reputation::Module::<T>::add_behavior_score_by_behavior(
+            &hunter,
+            &Behavior::BountyRemark(_remark),
+        );
 
         Self::change_state(bounty_id, BountyState::Resolved);
         Self::deposit_event(RawEvent::Resolve(bounty_id));
