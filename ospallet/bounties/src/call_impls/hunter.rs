@@ -1,12 +1,14 @@
 use frame_support::{
-    dispatch::DispatchResult, ensure, IterableStorageDoubleMap, storage::StorageDoubleMap,
+    dispatch::DispatchResult, ensure, storage::StorageDoubleMap, IterableStorageDoubleMap,
 };
 
 use opensquare_primitives::BountyId;
-use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
+use ospallet_reputation::{
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult,
+};
 
-use crate::{Error, HunterBounties, HuntingForBounty, Module, RawEvent, Trait};
 use crate::types::{BountyState, HunterBountyState};
+use crate::{Error, HunterBounties, HuntingForBounty, Module, RawEvent, Trait};
 
 impl<T: Trait> Module<T> {
     pub fn hunt_bounty_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
@@ -52,10 +54,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn cancel_bounty_hunting_impl(
-        bounty_id: BountyId,
-        hunter: T::AccountId,
-    ) -> DispatchResult {
+    pub fn cancel_bounty_hunting_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
             Self::bounty_state_of(bounty_id) == BountyState::Applying,
             Error::<T>::InvalidState

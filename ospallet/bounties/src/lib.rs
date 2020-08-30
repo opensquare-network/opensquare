@@ -18,7 +18,7 @@ use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
 use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
 
-use ospallet_reputation::{BountyRemarkCollaborationResult};
+use ospallet_reputation::BountyRemarkCollaborationResult;
 
 mod call_impls;
 mod types;

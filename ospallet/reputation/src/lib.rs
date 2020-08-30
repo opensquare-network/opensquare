@@ -3,7 +3,9 @@
 use frame_support::{decl_module, decl_storage};
 use frame_system as system;
 
-pub use crate::types::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
+pub use crate::types::{
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult,
+};
 
 mod types;
 

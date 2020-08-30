@@ -7,13 +7,15 @@ use frame_support::{
 
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
-use ospallet_reputation::{Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult};
+use ospallet_reputation::{
+    Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult,
+};
 
+use crate::types::{BountyOf, BountyState, HunterBountyState};
 use crate::{
     Bounties, BountiesOf, BountyIdFor, BountyResolved, BountyStateOf, Error, HuntedForBounty,
     HunterBounties, Module, RawEvent, Trait,
 };
-use crate::types::{BountyOf, BountyState, HunterBountyState};
 
 impl<T: Trait> Module<T> {
     pub fn create_bounty_impl(creator: T::AccountId, bounty: BountyOf<T>) -> DispatchResult {
