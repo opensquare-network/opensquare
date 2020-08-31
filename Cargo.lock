@@ -3341,6 +3341,7 @@ dependencies = [
  "orml-oracle",
  "orml-tokens",
  "ospallet-bounties",
+ "ospallet-mining",
  "ospallet-reputation",
  "ospallet-system",
  "pallet-aura",
@@ -3479,6 +3480,15 @@ dependencies = [
  "serde",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "ospallet-mining"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
 ]
 
 [[package]]

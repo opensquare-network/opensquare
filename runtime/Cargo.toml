@@ -56,6 +56,7 @@ opensquare-primitives = { path = "../primitives", default-features = false }
 ospallet-system = { path = "../ospallet/system", default-features = false }
 ospallet-bounties = { path = "../ospallet/bounties", default-features = false }
 ospallet-reputation = { path = "../ospallet/reputation", default-features = false }
+ospallet-mining = { path = "../ospallet/mining", default-features = false }
 
 [build-dependencies]
 wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.5", default-features = false }
@@ -107,4 +108,6 @@ std = [
     "opensquare-primitives/std",
     "ospallet-system/std",
     "ospallet-bounties/std",
+    "ospallet-reputation/std",
+    "ospallet-mining/std",
 ]
