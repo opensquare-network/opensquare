@@ -3488,7 +3488,9 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "opensquare-primitives",
  "parity-scale-codec",
+ "sp-runtime",
 ]
 
 [[package]]
