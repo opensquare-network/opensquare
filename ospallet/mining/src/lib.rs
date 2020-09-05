@@ -1,16 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-
 use frame_support::{debug, decl_module, decl_storage, weights::Weight};
 use frame_system as system;
 
-use sp_runtime::{traits::SaturatedConversion};
+use sp_runtime::traits::SaturatedConversion;
 
 use frame_support::traits::Currency;
 
-pub use opensquare_primitives::CurrencyId;
 use crate::constants::DEFAULT_BLOCKS_PER_SESSION;
 use crate::types::{MiningPower, SessionIndex};
+pub use opensquare_primitives::CurrencyId;
 
 mod constants;
 mod types;
@@ -34,14 +33,14 @@ decl_module! {
         fn on_initialize(now: T::BlockNumber) -> Weight {
             debug::info!("new block initialize, {:?}", now);
             let is_session_end = now.saturated_into::<u32>() % DEFAULT_BLOCKS_PER_SESSION == 0;
+            if is_session_end {
+                let total_issuance = T::Currency::total_issuance();
+                let issuance = total_issuance.saturated_into::<u128>() / 100;
 
-            let total_issuance = T::Currency::total_issuance();
-            let issuance = total_issuance.saturated_into::<u128>() / 100;
-
-            debug::info!("new issuance, {:?}", issuance);
-            // TODO: 1. check the end of each session
-            // TODO: 2. calc the issuance of this session
-            // TODO: 3. transfer the issuance to the jackpot address
+                debug::info!("new issuance, {:?}", issuance);
+                // TODO: 1. generate jackpot address for this session
+                // TODO: 2. depost the issuance to the jackpot address
+            }
 
             10_00000
         }
@@ -49,10 +48,7 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    pub fn add_mining_power(
-        target: &T::AccountId,
-        power: MiningPower,
-    ) {
+    pub fn add_mining_power(target: &T::AccountId, power: MiningPower) {
         let now = <frame_system::Module<T>>::block_number();
         let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
 
