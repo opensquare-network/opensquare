@@ -17,6 +17,9 @@ frame-system = { version = "2.0.0-rc6", default-features = false }
 
 opensquare-primitives = { path = "../../primitives", default-features = false }
 
+# orml
+orml-traits = { path = "../../vendor/orml/traits", default-features = false }
+
 [features]
 default = ["std"]
 std = [
@@ -24,5 +27,7 @@ std = [
     "frame-system/std",
 
     "opensquare-primitives/std",
+
+    "orml-traits/std",
 ]
 
