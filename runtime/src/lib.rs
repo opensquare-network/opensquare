@@ -292,7 +292,7 @@ impl ospallet_bounties::Trait for Runtime {
 impl ospallet_reputation::Trait for Runtime {}
 
 impl ospallet_mining::Trait for Runtime {
-    type Currency = Currencies;
+    type Currency = Balances;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
