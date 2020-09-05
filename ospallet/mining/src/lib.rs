@@ -1,18 +1,22 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use crate::types::{MiningPower, SessionIndex};
+
 use frame_support::{debug, decl_module, decl_storage, weights::Weight};
 use frame_system as system;
-use crate::constants::DEFAULT_BLOCKS_PER_SESSION;
+
 use sp_runtime::{traits::SaturatedConversion};
-use orml_traits::{MultiCurrency, MultiReservableCurrency};
+
+use frame_support::traits::Currency;
+
 pub use opensquare_primitives::CurrencyId;
+use crate::constants::DEFAULT_BLOCKS_PER_SESSION;
+use crate::types::{MiningPower, SessionIndex};
 
 mod constants;
 mod types;
 
 pub trait Trait: system::Trait {
-    type Currency: MultiCurrency<Self::AccountId> + MultiReservableCurrency<Self::AccountId>;
+    type Currency: Currency<Self::AccountId>;
 }
 
 decl_storage! {
@@ -31,7 +35,7 @@ decl_module! {
             debug::info!("new block initialize, {:?}", now);
             let is_session_end = now.saturated_into::<u32>() % DEFAULT_BLOCKS_PER_SESSION == 0;
 
-            let total_issuance = T::Currency::total_issuance(<opensquare_primitives::Module<T>>::CurrencyId::Native);
+            let total_issuance = T::Currency::total_issuance();
             let issuance = total_issuance.saturated_into::<u128>() / 100;
 
             debug::info!("new issuance, {:?}", issuance);
