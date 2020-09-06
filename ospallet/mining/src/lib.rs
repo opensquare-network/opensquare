@@ -75,16 +75,13 @@ decl_module! {
         }
 
         fn on_initialize(now: T::BlockNumber) -> Weight {
-            debug::info!("new block initialize, {:?}", now);
             let is_session_end = now.saturated_into::<u32>() % DEFAULT_BLOCKS_PER_SESSION == 0;
             let total_issuance = T::Currency::total_issuance();
-            debug::info!("total issuance, {:?}", total_issuance);
 
             if is_session_end {
                 let issuance = total_issuance / 100.into();
                 let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
                 SessionTotalReward::<T>::insert(session_index, issuance);
-                debug::info!("new issuance, {:?}", issuance);
 
                 Self::deposit_event(RawEvent::SessionTotalRewardSet(session_index, issuance));
             }
