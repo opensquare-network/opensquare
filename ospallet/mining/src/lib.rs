@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{debug, decl_event, decl_module, decl_storage, weights::Weight, dispatch::DispatchResult};
+use frame_support::{decl_event, decl_module, decl_storage, weights::Weight, dispatch::DispatchResult};
 use frame_system as system;
 use frame_system::ensure_signed;
 
