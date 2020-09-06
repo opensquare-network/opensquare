@@ -63,6 +63,10 @@ pub type SdDigest = sp_core::H256;
 /// unique index for a bounty
 pub type BountyId = sp_core::H256;
 
+pub const BLOCKS_PER_MINUTE: u32 = 10;
+pub const BLOCKS_PER_HOUR: u32 = BLOCKS_PER_MINUTE * 60;
+pub const BLOCKS_PER_DAY: u32 = BLOCKS_PER_HOUR * 24;
+
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this
 /// account.
