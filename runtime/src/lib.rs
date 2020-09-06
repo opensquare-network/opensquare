@@ -289,7 +289,9 @@ impl ospallet_bounties::Trait for Runtime {
     type ReputationBuilder = OsReputation;
 }
 
-impl ospallet_reputation::Trait for Runtime {}
+impl ospallet_reputation::Trait for Runtime {
+    type Event = Event;
+}
 
 impl ospallet_mining::Trait for Runtime {
     type Event = Event;
@@ -319,7 +321,7 @@ construct_runtime!(
 
         OsSystem: ospallet_system::{Module, Call, Config<T>, Storage, Event<T>},
         OsBounties: ospallet_bounties::{Module, Call, Storage, Event<T>},
-        OsReputation: ospallet_reputation::{Module, Storage},
+        OsReputation: ospallet_reputation::{Module, Storage, Event<T>},
         OsMining: ospallet_mining::{Module, Call, Storage, Event<T>},
     }
 );
