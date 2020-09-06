@@ -63,8 +63,7 @@ decl_module! {
             if power > 0 {
                 let total_power = Self::session_total_mining_power(session_index);
 
-                let now = <frame_system::Module<T>>::block_number();
-                let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
+                let session_index = Self::get_now_session_index();
 
                 let total_reward = Self::session_total_reward(session_index);
                 let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
@@ -94,9 +93,13 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    pub fn add_mining_power(target: &T::AccountId, power: MiningPower) {
+    pub fn get_now_session_index() -> SessionIndex {
         let now = <frame_system::Module<T>>::block_number();
-        let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
+        now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION
+    }
+
+    pub fn add_mining_power(target: &T::AccountId, power: MiningPower) {
+        let session_index = Self::get_now_session_index();
 
         SessionAccountMiningPower::<T>::mutate(session_index, &target, |pre| {
             *pre = pre.saturating_add(power);
@@ -109,8 +112,7 @@ impl<T: Trait> Module<T> {
     }
 
     pub fn add_session_total_mining_power(power: MiningPower) {
-        let now = <frame_system::Module<T>>::block_number();
-        let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
+        let session_index = Self::get_now_session_index();
 
         SessionTotalMiningPower::mutate(session_index, |pre| {
             *pre = pre.saturating_add(power);
