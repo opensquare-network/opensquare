@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage};
+use frame_support::{decl_event, decl_module, decl_storage};
 use frame_system as system;
 
 pub use crate::types::{
@@ -38,9 +38,7 @@ impl<T: Trait> Module<T> {
         BehaviorScore::<T>::mutate(target, |pre| {
             if let Some(new_score) = pre.checked_add(score) {
                 *pre = new_score;
-                Self::deposit_event(
-                    RawEvent::ReputationAdded(target.clone(), new_score)
-                );
+                Self::deposit_event(RawEvent::ReputationAdded(target.clone(), new_score));
             }
         });
     }

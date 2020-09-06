@@ -1,6 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_event, decl_module, decl_storage, weights::Weight, dispatch::DispatchResult};
+use frame_support::{
+    decl_event, decl_module, decl_storage, dispatch::DispatchResult, weights::Weight,
+};
 use frame_system as system;
 use frame_system::ensure_signed;
 
@@ -22,7 +24,7 @@ pub trait Trait: system::Trait {
 }
 
 pub type BalanceOf<T> =
-<<T as Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
+    <<T as Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
 
 decl_event!(
     pub enum Event<T> where
@@ -98,9 +100,11 @@ impl<T: Trait> Module<T> {
 
         SessionAccountMiningPower::<T>::mutate(session_index, &target, |pre| {
             *pre = pre.saturating_add(power);
-            Self::deposit_event(
-                RawEvent::AccountMiningPowerSet(target.clone(), session_index, *pre)
-            );
+            Self::deposit_event(RawEvent::AccountMiningPowerSet(
+                target.clone(),
+                session_index,
+                *pre,
+            ));
         });
     }
 
@@ -110,9 +114,7 @@ impl<T: Trait> Module<T> {
 
         SessionTotalMiningPower::mutate(session_index, |pre| {
             *pre = pre.saturating_add(power);
-            Self::deposit_event(
-                RawEvent::SessionTotalMiningPowerSet(session_index, *pre)
-            );
+            Self::deposit_event(RawEvent::SessionTotalMiningPowerSet(session_index, *pre));
         });
     }
 }
