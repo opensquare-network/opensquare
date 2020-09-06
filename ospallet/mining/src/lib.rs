@@ -16,6 +16,8 @@ mod constants;
 mod types;
 
 pub trait Trait: system::Trait {
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+
     type Currency: Currency<Self::AccountId>;
 }
 
@@ -27,6 +29,10 @@ decl_event!(
         <T as frame_system::Trait>::AccountId,
         Balance = BalanceOf<T>
     {
+        SessionTotalRewardSet(SessionIndex, Balance),
+        SessionTotalMiningPowerSet(SessionIndex, MiningPower),
+        AccountMiningPowerSet(AccountId, SessionIndex, MiningPower),
+        RewardClaimed(AccountId, SessionIndex, Balance),
     }
 );
 
@@ -46,22 +52,24 @@ decl_storage! {
 
 decl_module! {
     pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+        fn deposit_event() = default;
+
         #[weight = 0]
         fn claim(origin, session_index: SessionIndex) -> DispatchResult {
             let who = ensure_signed(origin)?;
             let power = SessionAccountMiningPower::<T>::take(session_index, &who);
-            if power == 0 {
-                OK(())
+            if power > 0 {
+                let total_power = Self::session_total_mining_power(session_index);
+
+                let now = <frame_system::Module<T>>::block_number();
+                let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
+
+                let total_reward = Self::session_total_reward(session_index);
+                let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
+                T::Currency::deposit_creating(&who, reward);
+
+                Self::deposit_event(RawEvent::RewardClaimed(who.clone(), session_index, reward));
             }
-
-            let total_power = Self::session_total_mining_power(session_index);
-
-            let now = <frame_system::Module<T>>::block_number();
-            let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
-
-            let total_reward = Self::session_total_reward(session_index);
-            let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
-            T::Currency::deposit_creating(&who, reward);
 
             Ok(())
         }
@@ -77,6 +85,8 @@ decl_module! {
                 let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
                 SessionTotalReward::<T>::insert(session_index, issuance);
                 debug::info!("new issuance, {:?}", issuance);
+
+                Self::deposit_event(RawEvent::SessionTotalRewardSet(session_index, issuance));
             }
 
             10_00000
@@ -90,7 +100,12 @@ impl<T: Trait> Module<T> {
         let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
 
         SessionAccountMiningPower::<T>::mutate(&session_index, &target, |pre| {
-            pre.checked_add(power)
+            if let Some(new_power) = pre.checked_add(power) {
+                *pre = new_power;
+                Self::deposit_event(
+                    RawEvent::AccountMiningPowerSet(target.clone(), session_index, new_power)
+                );
+            }
         });
     }
 
@@ -98,6 +113,13 @@ impl<T: Trait> Module<T> {
         let now = <frame_system::Module<T>>::block_number();
         let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
 
-        SessionTotalMiningPower::mutate(&session_index, |pre| pre.checked_add(power));
+        SessionTotalMiningPower::mutate(&session_index, |pre| {
+            if let Some(new_power) = pre.checked_add(power) {
+                *pre = new_power;
+                Self::deposit_event(
+                    RawEvent::SessionTotalMiningPowerSet(session_index, new_power)
+                );
+            }
+        });
     }
 }
