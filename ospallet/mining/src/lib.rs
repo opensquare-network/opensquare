@@ -97,12 +97,10 @@ impl<T: Trait> Module<T> {
         let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
 
         SessionAccountMiningPower::<T>::mutate(session_index, &target, |pre| {
-            if let Some(new_power) = pre.checked_add(power) {
-                *pre = new_power;
-                Self::deposit_event(
-                    RawEvent::AccountMiningPowerSet(target.clone(), session_index, new_power)
-                );
-            }
+            *pre = pre.saturating_add(power);
+            Self::deposit_event(
+                RawEvent::AccountMiningPowerSet(target.clone(), session_index, *pre)
+            );
         });
     }
 
@@ -111,12 +109,10 @@ impl<T: Trait> Module<T> {
         let session_index = now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION;
 
         SessionTotalMiningPower::mutate(session_index, |pre| {
-            if let Some(new_power) = pre.checked_add(power) {
-                *pre = new_power;
-                Self::deposit_event(
-                    RawEvent::SessionTotalMiningPowerSet(session_index, new_power)
-                );
-            }
+            *pre = pre.saturating_add(power);
+            Self::deposit_event(
+                RawEvent::SessionTotalMiningPowerSet(session_index, *pre)
+            );
         });
     }
 }
