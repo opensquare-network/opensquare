@@ -8,6 +8,8 @@
         ]
     },
     "OracleKey": "CurrencyId",
+    "Address": "AccountId",
+    "LookupSource": "AccountId",
     "Amount": "i128",
     "CurrencyIdOf": "CurrencyId",
     "Price": "FixedU128",
@@ -66,5 +68,7 @@
             "D",
             "E"
         ]
-    }
+    },
+    "SessionIndex": "u32",
+    "MiningPower": "u128"
 }
