@@ -1,4 +1,6 @@
 {
+    "Address": "AccountId",
+    "LookupSource": "AccountId",
     "Amount": "i128",
     "CurrencyIdOf": "CurrencyId",
     "OracleKey": "CurrencyId",
@@ -66,5 +68,7 @@
             "D",
             "E"
         ]
-    }
+    },
+    "SessionIndex": "u32",
+    "MiningPower": "u128"
 }
