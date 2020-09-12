@@ -168,7 +168,7 @@ impl pallet_grandpa::Trait for Runtime {
     type KeyOwnerProofSystem = ();
 
     type KeyOwnerProof =
-    <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+        <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
 
     type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
         KeyTypeId,
@@ -263,7 +263,7 @@ impl orml_oracle::Trait for Runtime {
 }
 
 type EnsureRootOrCouncil =
-EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
+    EnsureOneOf<AccountId, EnsureRoot<AccountId>, EnsureSignedBy<OsSystem, AccountId>>;
 
 impl ospallet_system::Trait for Runtime {
     type Event = Event;
