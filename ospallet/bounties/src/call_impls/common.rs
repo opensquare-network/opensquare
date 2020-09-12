@@ -73,4 +73,18 @@ impl<T: Trait> Module<T> {
         }
         BountyStateOf::insert(bounty_id, state);
     }
+
+    pub fn check_bounty_can_be_closed(bounty_id: BountyId) -> DispatchResult {
+        let state = Self::bounty_state_of(bounty_id);
+        ensure!(
+            // No meaning to close a rejected bounty
+            (state != BountyState::Rejected)
+                || (state != BountyState::Closed)
+                || (state != BountyState::Outdated)
+                || (state != BountyState::Resolved),
+            Error::<T>::InvalidState
+        );
+
+        Ok(())
+    }
 }

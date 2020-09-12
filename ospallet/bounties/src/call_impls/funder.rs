@@ -55,16 +55,7 @@ impl<T: Trait> Module<T> {
     pub fn close_bounty_impl(funder: T::AccountId, bounty_id: BountyId) -> DispatchResult {
         let bounty = Self::get_bounty(&bounty_id)?;
         Self::check_funder(&funder, &bounty)?;
-
-        // No meaning to close a rejected bounty
-        let state = Self::bounty_state_of(bounty_id);
-        ensure!(
-            (state != BountyState::Rejected)
-                || (state != BountyState::Closed)
-                || (state != BountyState::Outdated)
-                || (state != BountyState::Resolved),
-            Error::<T>::InvalidState
-        );
+        Self::check_bounty_can_be_closed(bounty_id)?;
 
         let (id, locked) = Self::parse_payment(&bounty);
         // release reserved balance

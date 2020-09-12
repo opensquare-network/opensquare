@@ -27,16 +27,9 @@ impl<T: Trait> Module<T> {
         let bounty = Self::get_bounty(&bounty_id)?;
         let funder = Self::get_funder(&bounty);
         let (id, locked) = Self::parse_payment(&bounty);
-        let state = Self::bounty_state_of(bounty_id);
         // remove hunter for a bounty
         Self::remove_hunters_for_bounty(bounty_id);
-        ensure!(
-            (state != BountyState::Rejected)
-                || (state != BountyState::Closed)
-                || (state != BountyState::Outdated)
-                || (state != BountyState::Resolved),
-            Error::<T>::InvalidState
-        );
+        Self::check_bounty_can_be_closed(bounty_id)?;
         // release reserved balance, todo maybe use log to print it
         let remaining = T::Currency::unreserve(id, &funder, locked);
 
