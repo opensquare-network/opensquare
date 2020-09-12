@@ -33,3 +33,10 @@ In the process of 3-4, either the council and funder can close the bounty. Curre
 
 - `examine_bounty`: Give the review result for a bounty.
 - `force_close_bounty`: Force close a bounty. The reasons may include outdated description, longtime no applicants.
+
+## Reputation
+
+Some collaborations will bring behavior score to user. For instance:
+
+- Bounty resolved by funder will bring hunter reputation grow.
+- Funders and Hunters' Reputation will be affected by each other's remark.
