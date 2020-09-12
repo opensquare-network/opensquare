@@ -2,7 +2,6 @@ use frame_support::{dispatch::DispatchResult, ensure};
 
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
-use orml_utilities::with_transaction_result;
 
 use crate::types::BountyState;
 use crate::types::CloseReason;
@@ -29,29 +28,21 @@ impl<T: Trait> Module<T> {
         let funder = Self::get_funder(&bounty);
         let (id, locked) = Self::parse_payment(&bounty);
         let state = Self::bounty_state_of(bounty_id);
+        // remove hunter for a bounty
+        Self::remove_hunters_for_bounty(bounty_id);
+        ensure!(
+            (state != BountyState::Rejected)
+                || (state != BountyState::Closed)
+                || (state != BountyState::Outdated)
+                || (state != BountyState::Resolved),
+            Error::<T>::InvalidState
+        );
+        // release reserved balance, todo maybe use log to print it
+        let remaining = T::Currency::unreserve(id, &funder, locked);
 
-        with_transaction_result(|| {
-            // remove hunter for a bounty
-            Self::remove_hunters_for_bounty(bounty_id);
-            match reason {
-                CloseReason::Outdated => {
-                    ensure!(
-                        (state == BountyState::Accepted) || (state == BountyState::Assigned),
-                        Error::<T>::InvalidState
-                    );
-                    let height = Self::assigned_height(&bounty_id);
-                    let current_height = frame_system::Module::<T>::block_number();
-                    if height + Self::outdated_height() > current_height {
-                        Err(Error::<T>::ValidBounty)?;
-                    }
-                    // release reserved balance, todo maybe use log to print it
-                    let _remaining = T::Currency::unreserve(id, &funder, locked);
+        Self::change_state(bounty_id, BountyState::Closed);
+        Self::deposit_event(RawEvent::ForceClosed(bounty_id, reason, remaining));
 
-                    Self::change_state(bounty_id, BountyState::Outdated);
-                    Self::deposit_event(RawEvent::OutdateBounty(bounty_id));
-                } // TODO other reason
-            }
-            Ok(())
-        })
+        Ok(())
     }
 }

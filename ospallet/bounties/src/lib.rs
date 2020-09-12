@@ -117,6 +117,7 @@ decl_event!(
         Accept(BountyId),
         Reject(BountyId),
         Close(BountyId, Balance),
+        ForceClosed(BountyId, CloseReason, Balance),
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
         OutdateBounty(BountyId),

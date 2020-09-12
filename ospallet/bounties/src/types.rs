@@ -21,10 +21,9 @@ pub enum BountyCategory {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyState {
     Applying,
-    Accepted, // Accepted by the Council
-    Rejected, // Rejected by the Council
-    Closed,   // Closed by funder
-    // Idle,
+    Accepted, // Accepted by the council
+    Rejected, // Rejected by the council
+    Closed,   // Closed by funder or the council
     Assigned,
     Outdated,
     Submitted,
@@ -64,6 +63,7 @@ pub struct SettingData {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum CloseReason {
     Outdated,
+    InvalidState,
 }
 
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
