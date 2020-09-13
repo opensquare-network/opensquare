@@ -21,6 +21,7 @@
             "Accepted",
             "Rejected",
             "Closed",
+            "CouncilClosed",
             "Assigned",
             "Outdated",
             "Submitted",
