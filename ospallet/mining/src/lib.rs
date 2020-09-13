@@ -11,7 +11,7 @@ use sp_runtime::traits::SaturatedConversion;
 use frame_support::traits::Currency;
 
 use crate::constants::DEFAULT_BLOCKS_PER_SESSION;
-use crate::types::{MiningPower, SessionIndex};
+pub use crate::types::{MingPowerBuilder, MiningPower, SessionIndex};
 pub use opensquare_primitives::CurrencyId;
 
 mod constants;
@@ -93,12 +93,14 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    pub fn get_now_session_index() -> SessionIndex {
+    fn get_now_session_index() -> SessionIndex {
         let now = <frame_system::Module<T>>::block_number();
         now.saturated_into::<u32>() / DEFAULT_BLOCKS_PER_SESSION
     }
+}
 
-    pub fn add_mining_power(target: &T::AccountId, power: MiningPower) {
+impl<T: Trait> MingPowerBuilder<T::AccountId> for Module<T> {
+    fn add_mining_power(target: &T::AccountId, power: MiningPower) {
         let session_index = Self::get_now_session_index();
 
         SessionAccountMiningPower::<T>::mutate(session_index, &target, |pre| {
@@ -111,7 +113,7 @@ impl<T: Trait> Module<T> {
         });
     }
 
-    pub fn add_session_total_mining_power(power: MiningPower) {
+    fn add_session_total_mining_power(power: MiningPower) {
         let session_index = Self::get_now_session_index();
 
         SessionTotalMiningPower::mutate(session_index, |pre| {

@@ -149,6 +149,16 @@ impl<T: Trait> Module<T> {
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
+        Self::_add_reputation(hunter, remark);
+
+        Self::change_state(bounty_id, BountyState::Resolved);
+        Self::deposit_event(RawEvent::Resolve(bounty_id));
+        // TODO maybe delete storage to save disk space
+
+        Ok(())
+    }
+
+    fn _add_reputation(hunter: T::AccountId, remark: BountyRemarkCollaborationResult) {
         T::ReputationBuilder::add_behavior_score_by_behavior(
             &hunter,
             &Behavior::BountyResolve(BountyResolveCollaborationResult::Success),
@@ -157,11 +167,5 @@ impl<T: Trait> Module<T> {
             &hunter,
             &Behavior::BountyRemark(remark),
         );
-
-        Self::change_state(bounty_id, BountyState::Resolved);
-        Self::deposit_event(RawEvent::Resolve(bounty_id));
-        // TODO maybe delete storage to save disk space
-
-        Ok(())
     }
 }

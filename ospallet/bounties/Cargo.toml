@@ -19,10 +19,12 @@ frame-system = { version = "2.0.0-rc6", default-features = false }
 # orml
 orml-traits = { path = "../../vendor/orml/traits", default-features = false }
 orml-utilities = { path = "../../vendor/orml/utilities", default-features = false }
+orml-tokens = { path = "../../vendor/orml/tokens", default-features = false }
 
 opensquare-primitives = { path = "../../primitives", default-features = false }
 ospallet-support = { path = "../support", default-features = false }
 ospallet-reputation = { path = "../reputation", default-features = false }
+ospallet-mining = { path = "../mining", default-features = false }
 
 [features]
 default = ["std"]
@@ -38,7 +40,10 @@ std = [
 
     "orml-traits/std",
     "orml-utilities/std",
+    "orml-tokens/std",
 
     "opensquare-primitives/std",
     "ospallet-support/std",
+    "ospallet-reputation/std",
+    "ospallet-mining/std",
 ]

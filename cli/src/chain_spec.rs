@@ -4,10 +4,11 @@ use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
+use opensquare_primitives::CurrencyId;
 use opensquare_runtime::{self, AccountId, OracleId, Signature};
 use opensquare_runtime::{
-    AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, OsSystemConfig,
-    SudoConfig, SystemConfig, TokensConfig, WASM_BINARY,
+    AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, OsBountiesConfig,
+    OsSystemConfig, SudoConfig, SystemConfig, TokensConfig, WASM_BINARY,
 };
 
 // The URL for the telemetry server.
@@ -178,6 +179,10 @@ fn testnet_genesis(
         }),
         ospallet_system: Some(OsSystemConfig {
             tmp_council: vec![root_key],
+        }),
+        ospallet_bounties: Some(OsBountiesConfig {
+            currency_ratios: vec![(CurrencyId::USDT, 8u128)],
+            dummy: 0u32,
         }),
     }
 }

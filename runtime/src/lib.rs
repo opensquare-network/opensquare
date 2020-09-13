@@ -287,6 +287,7 @@ impl ospallet_bounties::Trait for Runtime {
     type DetermineBountyId = ospallet_bounties::SimpleBountyIdDeterminer<Runtime>;
     type BountyResolved = ();
     type ReputationBuilder = OsReputation;
+    type MiningPowerBuilder = OsMining;
 }
 
 impl ospallet_reputation::Trait for Runtime {
@@ -320,7 +321,7 @@ construct_runtime!(
         Oracle: orml_oracle::{Module, Storage, Call, Config<T>, Event<T>, ValidateUnsigned},
 
         OsSystem: ospallet_system::{Module, Call, Config<T>, Storage, Event<T>},
-        OsBounties: ospallet_bounties::{Module, Call, Storage, Event<T>},
+        OsBounties: ospallet_bounties::{Module, Call, Storage, Event<T>, Config<T>},
         OsReputation: ospallet_reputation::{Module, Storage, Event<T>},
         OsMining: ospallet_mining::{Module, Call, Storage, Event<T>},
     }

@@ -18,6 +18,7 @@ use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
 use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
 
+use ospallet_mining::MingPowerBuilder;
 use ospallet_reputation::{BountyRemarkCollaborationResult, ReputationBuilder};
 
 mod call_impls;
@@ -40,6 +41,7 @@ pub trait BountyIdFor<AccountId> {
 ///
 /// Formula: `blake2_256(blake2_256(code) + blake2_256(data) + origin)`
 pub struct SimpleBountyIdDeterminer<T: Trait>(PhantomData<T>);
+
 impl<T: Trait> BountyIdFor<T::AccountId> for SimpleBountyIdDeterminer<T>
 where
     T::AccountId: AsRef<[u8]>,
@@ -83,6 +85,8 @@ pub trait Trait: frame_system::Trait {
     type BountyResolved: BountyResolved<Self>;
 
     type ReputationBuilder: ReputationBuilder<Self::AccountId>;
+
+    type MiningPowerBuilder: MingPowerBuilder<Self::AccountId>;
 }
 
 decl_error! {
@@ -144,7 +148,7 @@ decl_storage! {
         pub HuntingForBounty get(fn hunting_for_bounty):
             double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => Option<()>;
         /// record a hunted bounty has been doing by who(single hunter)
-        pub HuntedForBounty get(fn hunted_for_bounty): map hasher(identity) BountyId => T::AccountId;
+        HuntedForBounty get(fn hunted_for_bounty): map hasher(identity) BountyId => T::AccountId;
 
         /// record bounties for a hunter, include hunting and hunted(in processing)
         pub HunterBounties get(fn hunter_bounties):
@@ -152,7 +156,17 @@ decl_storage! {
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
         pub OutdatedHeight get(fn outdated_height): T::BlockNumber = 1000.saturated_into();
+
+        pub CurrencyRatios get(fn currency_ratios) config(): map hasher(blake2_128_concat) CurrencyIdOf<T> => u128;
     }
+        add_extra_genesis {
+            config(dummy): u32;
+            build(|config| {
+                for (currency_id, power) in &config.currency_ratios {
+                    CurrencyRatios::<T>::insert(currency_id, power);
+                }
+            })
+        }
 }
 
 decl_module! {
