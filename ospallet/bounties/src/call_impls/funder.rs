@@ -111,7 +111,7 @@ impl<T: Trait> Module<T> {
     pub fn resolve_bounty_and_remark_impl(
         bounty_id: BountyId,
         funder: T::AccountId,
-        _remark: BountyRemarkCollaborationResult,
+        remark: BountyRemarkCollaborationResult,
     ) -> DispatchResult {
         let bounty = Self::get_bounty(&bounty_id)?;
         Self::check_funder(&funder, &bounty)?;
@@ -155,7 +155,7 @@ impl<T: Trait> Module<T> {
         );
         T::ReputationBuilder::add_behavior_score_by_behavior(
             &hunter,
-            &Behavior::BountyRemark(_remark),
+            &Behavior::BountyRemark(remark),
         );
 
         Self::change_state(bounty_id, BountyState::Resolved);
