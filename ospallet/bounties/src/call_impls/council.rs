@@ -33,7 +33,7 @@ impl<T: Trait> Module<T> {
         // release reserved balance, todo maybe use log to print it
         let remaining = T::Currency::unreserve(id, &funder, locked);
 
-        Self::change_state(bounty_id, BountyState::Closed);
+        Self::change_state(bounty_id, BountyState::CouncilClosed);
         Self::deposit_event(RawEvent::ForceClosed(bounty_id, reason, remaining));
 
         Ok(())

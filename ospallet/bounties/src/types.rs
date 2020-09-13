@@ -21,9 +21,14 @@ pub enum BountyCategory {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyState {
     Applying,
-    Accepted, // Accepted by the council
-    Rejected, // Rejected by the council
-    Closed,   // Closed by funder or the council
+    // Accepted by the council
+    Accepted,
+    // Rejected by the council
+    Rejected,
+    // Closed by funder
+    Closed,
+    // Closed by the council
+    CouncilClosed,
     Assigned,
     Outdated,
     Submitted,
@@ -72,6 +77,7 @@ pub enum HunterBountyState {
     Hunting,
     Processing,
 }
+
 impl Default for HunterBountyState {
     fn default() -> Self {
         Self::Hunting
