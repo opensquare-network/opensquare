@@ -7,14 +7,16 @@ use frame_support::{
 
 use opensquare_primitives::BountyId;
 use orml_traits::MultiReservableCurrency;
+use ospallet_mining::MiningPowerBuilder;
 use ospallet_reputation::{
     Behavior, BountyRemarkCollaborationResult, BountyResolveCollaborationResult, ReputationBuilder,
 };
+use sp_runtime::traits::SaturatedConversion;
 
 use crate::types::{BountyOf, BountyState, HunterBountyState};
 use crate::{
-    Bounties, BountiesOf, BountyIdFor, BountyResolved, BountyStateOf, Error, HuntedForBounty,
-    HunterBounties, Module, RawEvent, Trait,
+    BalanceOf, Bounties, BountiesOf, BountyIdFor, BountyResolved, BountyStateOf, Error,
+    HuntedForBounty, HunterBounties, Module, RawEvent, Trait,
 };
 
 impl<T: Trait> Module<T> {
@@ -149,7 +151,8 @@ impl<T: Trait> Module<T> {
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
-        Self::_add_reputation(hunter, remark);
+        Self::_add_reputation(&hunter, remark);
+        Self::_add_mining_power(&bounty, fee, &funder, &hunter);
 
         Self::change_state(bounty_id, BountyState::Resolved);
         Self::deposit_event(RawEvent::Resolve(bounty_id));
@@ -158,14 +161,32 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    fn _add_reputation(hunter: T::AccountId, remark: BountyRemarkCollaborationResult) {
+    fn _add_reputation(hunter: &T::AccountId, remark: BountyRemarkCollaborationResult) {
         T::ReputationBuilder::add_behavior_score_by_behavior(
-            &hunter,
+            hunter,
             &Behavior::BountyResolve(BountyResolveCollaborationResult::Success),
         );
         T::ReputationBuilder::add_behavior_score_by_behavior(
-            &hunter,
+            hunter,
             &Behavior::BountyRemark(remark),
         );
+    }
+
+    fn _add_mining_power(
+        bounty: &BountyOf<T>,
+        fee: BalanceOf<T>,
+        funder: &T::AccountId,
+        hunter: &T::AccountId,
+    ) {
+        let currency_id = Self::get_currency_id(bounty);
+        let ratio = Self::currency_ratios(currency_id);
+
+        let total_power = fee.saturated_into::<u128>() * ratio;
+        let funder_power = total_power * 9 / 10;
+        let hunter_power = total_power / 10;
+
+        T::MiningPowerBuilder::add_mining_power(funder, funder_power);
+        T::MiningPowerBuilder::add_mining_power(hunter, hunter_power);
+        T::MiningPowerBuilder::add_session_total_mining_power(total_power);
     }
 }

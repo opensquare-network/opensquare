@@ -11,7 +11,7 @@ use sp_runtime::traits::SaturatedConversion;
 use frame_support::traits::Currency;
 
 use crate::constants::DEFAULT_BLOCKS_PER_SESSION;
-pub use crate::types::{MingPowerBuilder, MiningPower, SessionIndex};
+pub use crate::types::{MiningPower, MiningPowerBuilder, SessionIndex};
 pub use opensquare_primitives::CurrencyId;
 
 mod constants;
@@ -99,7 +99,7 @@ impl<T: Trait> Module<T> {
     }
 }
 
-impl<T: Trait> MingPowerBuilder<T::AccountId> for Module<T> {
+impl<T: Trait> MiningPowerBuilder<T::AccountId> for Module<T> {
     fn add_mining_power(target: &T::AccountId, power: MiningPower) {
         let session_index = Self::get_now_session_index();
 

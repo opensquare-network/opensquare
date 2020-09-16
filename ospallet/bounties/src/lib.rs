@@ -18,7 +18,7 @@ use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
 use crate::types::{Bounty, BountyOf, BountyState, CloseReason, HunterBountyState};
 
-use ospallet_mining::MingPowerBuilder;
+use ospallet_mining::MiningPowerBuilder;
 use ospallet_reputation::{BountyRemarkCollaborationResult, ReputationBuilder};
 
 mod call_impls;
@@ -86,7 +86,7 @@ pub trait Trait: frame_system::Trait {
 
     type ReputationBuilder: ReputationBuilder<Self::AccountId>;
 
-    type MiningPowerBuilder: MingPowerBuilder<Self::AccountId>;
+    type MiningPowerBuilder: MiningPowerBuilder<Self::AccountId>;
 }
 
 decl_error! {

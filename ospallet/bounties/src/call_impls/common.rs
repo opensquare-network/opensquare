@@ -26,6 +26,12 @@ impl<T: Trait> Module<T> {
         }
     }
 
+    pub fn get_currency_id(bounty: &BountyOf<T>) -> CurrencyIdOf<T> {
+        match bounty {
+            Bounty::V1(ref metadata) => metadata.currency_id.clone(),
+        }
+    }
+
     pub fn check_funder(caller: &T::AccountId, bounty: &BountyOf<T>) -> DispatchResult {
         let funder = Self::get_funder(bounty);
         ensure!(&funder == caller, Error::<T>::NotFunder);
