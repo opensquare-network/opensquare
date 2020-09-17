@@ -3280,6 +3280,7 @@ dependencies = [
  "sc-network",
  "sc-service",
  "sc-transaction-pool",
+ "serde_json",
  "sp-consensus",
  "sp-consensus-aura",
  "sp-core",

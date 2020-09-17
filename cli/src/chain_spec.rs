@@ -1,8 +1,9 @@
-use sc_service::ChainType;
+use sc_service::{ChainType, Properties};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use serde_json::json;
 
 use opensquare_primitives::CurrencyId;
 use opensquare_runtime::{self, AccountId, OracleId, Signature};
@@ -46,6 +47,19 @@ pub fn get_oracle_keys_from_seed(seed: &str) -> (AccountId, OracleId) {
     )
 }
 
+/// Helper function to generate the network properties.
+fn as_properties() -> Properties {
+    json!({
+        "ss58Format": 16,
+        "tokenDecimals": 8,
+        "tokenSymbol": "OSN"
+    })
+        .as_object()
+        .expect("network properties generation can not fail; qed")
+        .to_owned()
+}
+
+
 pub fn development_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
@@ -79,7 +93,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
         // Protocol ID
         None,
         // Properties
-        None,
+        Some(as_properties()),
         // Extensions
         None,
     ))
