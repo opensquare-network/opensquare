@@ -195,7 +195,12 @@ fn testnet_genesis(
             tmp_council: vec![root_key],
         }),
         ospallet_bounties: Some(OsBountiesConfig {
-            currency_ratios: vec![(CurrencyId::USDT, 8u128)],
+            currency_ratios: vec![
+                (CurrencyId::Native, 1u128),
+                (CurrencyId::USDT, 1u128),
+                (CurrencyId::AUSD, 1u128),
+                (CurrencyId::DOT, 5u128),
+            ],
             dummy: 0u32,
         }),
     }
