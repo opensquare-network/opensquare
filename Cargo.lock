@@ -1729,12 +1729,6 @@ dependencies = [
 
 [[package]]
 name = "hex"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
-
-[[package]]
-name = "hex"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
@@ -1756,16 +1750,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "853f769599eb31de176303197b7ba4973299c38c7a7604a6bc88c3eef05b9b46"
 dependencies = [
  "proc-macro-hack",
-]
-
-[[package]]
-name = "hex-serde"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3486d7bc9e52c4c5fc1856ae8a5e4ab41d2499fc20bbc44492e244e8bf1b7012"
-dependencies = [
- "hex 0.3.2",
- "serde",
 ]
 
 [[package]]
@@ -3515,11 +3499,9 @@ name = "ospallet-support"
 version = "0.1.0"
 dependencies = [
  "frame-support",
- "hex 0.4.2",
- "hex-serde",
- "parity-scale-codec",
+ "hex",
  "serde",
- "sp-std",
+ "serde_json",
 ]
 
 [[package]]
@@ -4900,7 +4882,7 @@ dependencies = [
  "env_logger",
  "fdlimit",
  "futures 0.3.5",
- "hex 0.4.2",
+ "hex",
  "lazy_static",
  "libp2p 0.22.0",
  "log",
@@ -5232,7 +5214,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "528afd2d984ab1bc4667fb60b5d2fbd685bf286145f630be7bc8cdbff8d1858f"
 dependencies = [
  "derive_more",
- "hex 0.4.2",
+ "hex",
  "merlin",
  "parking_lot 0.10.2",
  "rand 0.7.3",
@@ -5280,7 +5262,7 @@ dependencies = [
  "futures 0.3.5",
  "futures-timer 3.0.2",
  "futures_codec",
- "hex 0.4.2",
+ "hex",
  "ip_network",
  "libp2p 0.23.0",
  "linked-hash-map",
@@ -6187,7 +6169,7 @@ dependencies = [
  "futures 0.3.5",
  "hash-db",
  "hash256-std-hasher",
- "hex 0.4.2",
+ "hex",
  "impl-serde 0.3.1",
  "lazy_static",
  "libsecp256k1",

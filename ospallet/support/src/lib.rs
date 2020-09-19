@@ -2,17 +2,13 @@
 
 mod macros;
 #[cfg(feature = "std")]
-pub mod os_std;
+mod serde;
+
+pub use self::macros::*;
 #[cfg(feature = "std")]
-pub mod serde_impl;
-pub mod traits;
-mod u128;
+pub use self::serde::{serde_hex, serde_text};
 
 use frame_support::dispatch::{DispatchError, DispatchResult};
-
-pub use crate::u128::*;
-pub use frame_support::fail;
-pub use macros::*;
 
 /// Although xss is imperceptible on-chain, we merely want to make it look safer off-chain.
 #[inline]
