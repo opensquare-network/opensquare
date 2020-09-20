@@ -76,15 +76,11 @@ decl_module! {
             let power = SessionAccountMiningPower::<T>::take(session_index, &who);
             ensure!(power > 0, Error::<T>::NoMiningPower);
 
-            if power > 0 {
-                let total_power = Self::session_total_mining_power(session_index);
-
-                let total_reward = Self::session_total_reward(session_index);
-                let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
-                T::Currency::deposit_creating(&who, reward);
-
-                Self::deposit_event(RawEvent::RewardClaimed(who.clone(), session_index, reward));
-            }
+            let total_power = Self::session_total_mining_power(session_index);
+            let total_reward = Self::session_total_reward(session_index);
+            let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
+            T::Currency::deposit_creating(&who, reward);
+            Self::deposit_event(RawEvent::RewardClaimed(who.clone(), session_index, reward));
 
             Ok(())
         }
