@@ -149,8 +149,6 @@ impl<T: Trait> Module<T> {
         // trigger
         T::BountyResolved::after_bounty_resolved(&bounty);
 
-        // remove hunter
-        Self::remove_hunters_for_bounty(bounty_id);
         Self::_add_reputation(&hunter, remark);
         Self::_add_mining_power(&bounty, fee, &funder, &hunter);
 

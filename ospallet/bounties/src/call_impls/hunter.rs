@@ -108,6 +108,9 @@ impl<T: Trait> Module<T> {
             Error::<T>::NotHunter
         );
 
+        // remove hunter
+        Self::remove_hunters_for_bounty(bounty_id);
+
         let bounty = Self::get_bounty(&bounty_id)?;
         let funder = Self::get_funder(&bounty);
 
