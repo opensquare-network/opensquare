@@ -152,7 +152,7 @@ decl_storage! {
 
         /// record bounties for a hunter, include hunting and hunted(in processing)
         pub HunterBounties get(fn hunter_bounties):
-            double_map hasher(blake2_128_concat) T::AccountId, hasher(identity) BountyId => HunterBountyState;
+            double_map hasher(blake2_128_concat) T::AccountId, hasher(identity) BountyId => Option<HunterBountyState>;
 
         pub MaxHoldingBounties get(fn max_holding_bounties): u32 = 10;
         pub OutdatedHeight get(fn outdated_height): T::BlockNumber = 1000.saturated_into();
