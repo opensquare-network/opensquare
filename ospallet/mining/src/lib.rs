@@ -1,7 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-    decl_event, decl_module, decl_storage, dispatch::DispatchResult, weights::Weight,
+    decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult, ensure,
+    weights::Weight,
 };
 use frame_system as system;
 use frame_system::ensure_signed;
@@ -25,6 +26,13 @@ pub trait Trait: system::Trait {
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
+
+decl_error! {
+    pub enum Error for Module<T: Trait> {
+        InvalidSession,
+        NoMiningPower
+    }
+}
 
 decl_event!(
     pub enum Event<T> where
@@ -54,16 +62,22 @@ decl_storage! {
 
 decl_module! {
     pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+        type Error = Error<T>;
+
         fn deposit_event() = default;
 
         #[weight = 0]
         fn claim(origin, session_index: SessionIndex) -> DispatchResult {
             let who = ensure_signed(origin)?;
+
+            let now_session_index = Self::get_now_session_index();
+            ensure!(now_session_index > session_index, Error::<T>::InvalidSession);
+
             let power = SessionAccountMiningPower::<T>::take(session_index, &who);
+            ensure!(power > 0, Error::<T>::NoMiningPower);
+
             if power > 0 {
                 let total_power = Self::session_total_mining_power(session_index);
-
-                let session_index = Self::get_now_session_index();
 
                 let total_reward = Self::session_total_reward(session_index);
                 let reward = power.saturated_into::<BalanceOf<T>>() / total_power.saturated_into() * total_reward;
