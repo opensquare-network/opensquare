@@ -3,7 +3,7 @@ use serde::{de, ser, Deserialize};
 /// Hex serialization/deserialization
 pub mod serde_hex {
     use super::*;
-    
+
     /// A serializer that first encodes the argument as a hex-string
     pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
     where
