@@ -1,12 +1,12 @@
 use sc_service::{ChainType, Properties};
+use serde_json::json;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
-use serde_json::json;
 
 use opensquare_primitives::CurrencyId;
-use opensquare_runtime::{self, AccountId, OracleId, Signature};
+use opensquare_runtime::{self, AccountId, Signature};
 use opensquare_runtime::{
     AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, OracleConfig, OsBountiesConfig,
     OsSystemConfig, SudoConfig, SystemConfig, TokensConfig, WASM_BINARY,
@@ -40,13 +40,6 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
     (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
 }
 
-pub fn get_oracle_keys_from_seed(seed: &str) -> (AccountId, OracleId) {
-    (
-        get_account_id_from_seed::<sr25519::Public>(seed),
-        get_from_seed::<OracleId>(seed),
-    )
-}
-
 /// Helper function to generate the network properties.
 fn as_properties() -> Properties {
     json!({
@@ -54,11 +47,10 @@ fn as_properties() -> Properties {
         "tokenDecimals": 8,
         "tokenSymbol": "OSN"
     })
-        .as_object()
-        .expect("network properties generation can not fail; qed")
-        .to_owned()
+    .as_object()
+    .expect("network properties generation can not fail; qed")
+    .to_owned()
 }
-
 
 pub fn development_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
@@ -83,7 +75,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
                 ],
-                vec![get_oracle_keys_from_seed("Alice")],
             )
         },
         // Bootnodes
@@ -133,7 +124,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
-                vec![get_oracle_keys_from_seed("Alice")],
             )
         },
         // Bootnodes
@@ -155,7 +145,6 @@ fn testnet_genesis(
     initial_authorities: Vec<(AuraId, GrandpaId)>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
-    oracle_session_keys: Vec<(AccountId, OracleId)>,
 ) -> GenesisConfig {
     GenesisConfig {
         frame_system: Some(SystemConfig {
@@ -186,7 +175,7 @@ fn testnet_genesis(
         }),
         orml_oracle: Some(OracleConfig {
             members: Default::default(), // initialized by OperatorMembership
-            session_keys: oracle_session_keys,
+            phantom: Default::default(),
         }),
         orml_tokens: Some(TokensConfig {
             endowed_accounts: vec![],
