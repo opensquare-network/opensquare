@@ -17,9 +17,9 @@ frame-support = { version = "2.0.0", default-features = false }
 frame-system = { version = "2.0.0", default-features = false }
 
 # orml
-orml-traits = { path = "../../vendor/orml/traits", default-features = false }
-orml-utilities = { path = "../../vendor/orml/utilities", default-features = false }
-orml-tokens = { path = "../../vendor/orml/tokens", default-features = false }
+orml-traits = { version = "0.3", default-features = false }
+orml-utilities = { version = "0.3", default-features = false }
+orml-tokens = { version = "0.3", default-features = false }
 
 opensquare-primitives = { path = "../../primitives", default-features = false }
 ospallet-support = { path = "../support", default-features = false }

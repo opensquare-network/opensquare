@@ -48,9 +48,9 @@ pallet-utility = { version = "2.0.0", default-features = false }
 pallet-multisig = { version = "2.0.0", default-features = false }
 
 # orml
-orml-currencies = { path = "../vendor/orml/currencies", default-features = false }
-orml-oracle = { path = "../vendor/orml/oracle", default-features = false }
-orml-tokens = { path = "../vendor/orml/tokens", default-features = false }
+orml-currencies = { version = "0.3", default-features = false }
+orml-oracle = { version = "0.3", default-features = false }
+orml-tokens = { version = "0.3", default-features = false }
 
 opensquare-primitives = { path = "../primitives", default-features = false }
 ospallet-system = { path = "../ospallet/system", default-features = false }
