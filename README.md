@@ -19,6 +19,7 @@ if you ensure rust tool chain is ready, do follow to init environment.
 1. init environment
     ```bash
     > git clone https://github.com/opensquare-network/opensquare.git
+    > git submodule update --init --recursive
     > cd opensquare/scripts
     > bash init.sh
     ```
