@@ -146,7 +146,7 @@ decl_storage! {
 
         /// mark this bounty has been hunting by who
         pub HuntingForBounty get(fn hunting_for_bounty):
-            double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => Option<()>;
+            double_map hasher(identity) BountyId, hasher(blake2_128_concat) T::AccountId => bool;
         /// record a hunted bounty has been doing by who(single hunter)
         HuntedForBounty get(fn hunted_for_bounty): map hasher(identity) BountyId => T::AccountId;
 

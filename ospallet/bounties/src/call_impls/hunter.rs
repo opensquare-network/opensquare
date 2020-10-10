@@ -32,7 +32,7 @@ impl<T: Trait> Module<T> {
         );
 
         HunterBounties::<T>::insert(&hunter, bounty_id, HunterBountyState::Hunting);
-        HuntingForBounty::<T>::insert(bounty_id, &hunter, ());
+        HuntingForBounty::<T>::insert(bounty_id, &hunter, true);
 
         Self::deposit_event(RawEvent::HuntBounty(bounty_id, hunter));
         Ok(())
@@ -60,7 +60,7 @@ impl<T: Trait> Module<T> {
             Error::<T>::InvalidState
         );
         ensure!(
-            Self::hunting_for_bounty(&bounty_id, &hunter).is_some(),
+            Self::hunting_for_bounty(&bounty_id, &hunter),
             Error::<T>::NotHunter
         );
 

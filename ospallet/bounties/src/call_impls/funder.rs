@@ -85,7 +85,7 @@ impl<T: Trait> Module<T> {
 
         // judge new hunter is in hunting list
         ensure!(
-            Self::hunting_for_bounty(bounty_id, &hunter).is_some(),
+            Self::hunting_for_bounty(bounty_id, &hunter),
             Error::<T>::NotHunter
         );
         HuntedForBounty::<T>::try_mutate_exists(bounty_id, |option| -> DispatchResult {
