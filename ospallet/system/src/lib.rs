@@ -65,7 +65,7 @@ decl_module! {
         fn modify_blocked_list(origin, who: T::AccountId, block: bool) -> DispatchResult {
             ensure_root(origin)?;
             if block {
-                BlockedAccounts::<T>::insert(who.clone(), ());
+                BlockedAccounts::<T>::insert(who.clone(), true);
                 Self::deposit_event(RawEvent::BlockAccount(who))
             } else {
                 BlockedAccounts::<T>::remove(&who);
@@ -82,7 +82,7 @@ decl_storage! {
 
         pub Paused get(fn paused): map hasher(twox_64_concat) Vec<u8> => BTreeMap<Vec<u8>, ()>;
 
-        pub BlockedAccounts get(fn blocked_accounts): map hasher(blake2_128_concat) T::AccountId => Option<()>;
+        pub BlockedAccounts get(fn blocked_accounts): map hasher(blake2_128_concat) T::AccountId => bool;
 
         pub TmpCouncil get(fn tmp_council) config(): Vec<T::AccountId>;
     }
@@ -111,7 +111,9 @@ impl<T: Trait> Module<T> {
 
     pub fn blocked_list() -> Vec<T::AccountId> {
         use frame_support::IterableStorageMap;
-        BlockedAccounts::<T>::iter().map(|(a, _)| a).collect()
+        BlockedAccounts::<T>::iter()
+            .filter_map(|(a, blocked)| if blocked { Some(a) } else { None })
+            .collect()
     }
 }
 
