@@ -103,6 +103,10 @@ you could launch node with following commands:
         ```
         just pick up suitable bootnode for bob.
 
+## Run a basic user story
+
+Please refer to this [google doc](https://docs.google.com/document/d/1YfvERA_EilOEFTOd-tEivvWwn7DCk_Oj9cMror776mA/edit?usp=sharing) to compose a basic user story.
+
 ## License
 [Apache 2.0](LICENSE)
 
