@@ -229,7 +229,7 @@ impl pallet_sudo::Trait for Runtime {
 }
 
 parameter_types! {
-    pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
+    pub const GetNativeCurrencyId: CurrencyId = CurrencyId::OSN;
     pub const GetStableCurrencyId: CurrencyId = CurrencyId::USDT;
 }
 

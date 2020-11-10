@@ -1,7 +1,7 @@
 {
     "CurrencyId": {
         "_enum": [
-            "Native",
+            "OSN",
             "USDT",
             "AUSD",
             "DOT"

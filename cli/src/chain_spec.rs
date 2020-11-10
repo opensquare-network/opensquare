@@ -185,7 +185,7 @@ fn testnet_genesis(
         }),
         ospallet_bounties: Some(OsBountiesConfig {
             currency_ratios: vec![
-                (CurrencyId::Native, 1u128),
+                (CurrencyId::OSN, 1u128),
                 (CurrencyId::USDT, 1u128),
                 (CurrencyId::AUSD, 1u128),
                 (CurrencyId::DOT, 5u128),
