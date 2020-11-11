@@ -39,6 +39,7 @@
         "owner": "AccountId",
         "currency_id": "CurrencyId",
         "payment": "Balance",
+        "title": "Vec<u8>",
         "digest": "SdDigest"
     },
     "Bounty": {

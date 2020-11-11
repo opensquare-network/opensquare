@@ -1,4 +1,5 @@
 use codec::{Decode, Encode};
+use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
@@ -55,6 +56,7 @@ pub struct BountyMetaData<AccountId, CurrencyId, Balance> {
     pub owner: AccountId,
     pub currency_id: CurrencyId,
     pub payment: Balance,
+    pub title: Vec<u8>,
     pub digest: SdDigest,
 }
 
