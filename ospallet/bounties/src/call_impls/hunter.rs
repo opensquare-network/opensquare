@@ -56,16 +56,13 @@ impl<T: Trait> Module<T> {
 
     pub fn cancel_bounty_hunting_impl(bounty_id: BountyId, hunter: T::AccountId) -> DispatchResult {
         ensure!(
-            Self::bounty_state_of(bounty_id) == BountyState::Applying,
-            Error::<T>::InvalidState
-        );
-        ensure!(
             Self::hunting_for_bounty(&bounty_id, &hunter),
             Error::<T>::NotHunter
         );
 
         HuntingForBounty::<T>::remove(&bounty_id, &hunter);
         HunterBounties::<T>::remove(&hunter, &bounty_id);
+        Self::deposit_event(RawEvent::CancelHuntBounty(bounty_id, hunter));
         Ok(())
     }
 

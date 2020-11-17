@@ -121,6 +121,7 @@ decl_event!(
         Close(BountyId, Balance),
         ForceClosed(BountyId, CloseReason, Balance),
         HuntBounty(BountyId, AccountId),
+        CancelHuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
         Submit(BountyId),
         Resign(BountyId, AccountId),
@@ -230,7 +231,7 @@ decl_module! {
         }
 
         #[weight = 0]
-        fn cancel_bounty(origin, bounty_id: BountyId) -> DispatchResult {
+        fn cancel_hunt_bounty(origin, bounty_id: BountyId) -> DispatchResult {
             let hunter = ensure_signed(origin)?;
             Self::cancel_bounty_hunting_impl(bounty_id, hunter)
         }

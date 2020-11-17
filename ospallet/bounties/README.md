@@ -25,7 +25,7 @@ In the process of 3-4, either the council and funder can close the bounty. Curre
 
 - `hunt_bounty`: Apply a accepted bounty.
 - `submit_bounty`: Submit the work result for the assigned bounty.
-- `cancel_bounty`: Cancel the application for the bounty.
+- `cancel_hunt_bounty`: Cancel the application for the bounty.
 - `resign_from_bounty`: Resign from a assigned bounty.
 - `remark_bounty_funder`: Remark the bounty funder after the funder resolve the bounty and give the remark to hunter.
 
