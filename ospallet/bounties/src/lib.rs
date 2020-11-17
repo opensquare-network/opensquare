@@ -116,15 +116,12 @@ decl_event!(
         Balance = BalanceOf<T>
     {
         ApplyBounty(AccountId, BountyId),
-        // Apply(BountyId),
-        Approve(BountyId),
         Accept(BountyId),
         Reject(BountyId),
         Close(BountyId, Balance),
         ForceClosed(BountyId, CloseReason, Balance),
         HuntBounty(BountyId, AccountId),
         AssignBounty(BountyId, AccountId),
-        OutdateBounty(BountyId),
         Submit(BountyId),
         Resign(BountyId, AccountId),
         Resolve(BountyId),
