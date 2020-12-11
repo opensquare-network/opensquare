@@ -18,6 +18,12 @@ impl<T: Trait> Module<T> {
             Self::deposit_event(RawEvent::Accept(bounty_id));
         } else {
             Self::change_state(bounty_id, BountyState::Rejected);
+
+            let bounty = Self::get_bounty(&bounty_id)?;
+            let (id, locked) = Self::parse_payment(&bounty);
+            let funder = Self::get_funder(&bounty);
+            T::Currency::unreserve(id, &funder, locked);
+
             Self::deposit_event(RawEvent::Reject(bounty_id));
         }
         Ok(())
