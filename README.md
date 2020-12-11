@@ -25,10 +25,10 @@ if you ensure rust tool chain is ready, do follow to init environment.
     ```
 2. compile:
     ```bash
-    > WASM_BUILD_TYPE=release cargo build
-    > # or we advice you to set `WASM_BUILD_TYPE=release` in your global environment variables, so that you do not need to put every time before `cargo`
+    > WASM_BUILD_TOOLCHAIN=nightly-2020-10-06 cargo build
+    > # or we advice you to set `WASM_BUILD_TOOLCHAIN=nightly-2020-10-06` in your global environment variables, so that you do not need to put every time before `cargo`
     > # if you need build release type, do follow
-    > WASM_BUILD_TYPE=release cargo build --release
+    > WASM_BUILD_TOOLCHAIN=nightly-2020-10-06 cargo build --release
     ```
 3. run:
 
