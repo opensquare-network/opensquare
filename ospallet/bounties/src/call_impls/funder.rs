@@ -148,6 +148,7 @@ impl<T: Trait> Module<T> {
 
         // trigger
         T::BountyResolved::after_bounty_resolved(&bounty);
+        Self::deposit_event(RawEvent::FunderRemark(bounty_id, remark));
 
         Self::_add_reputation(&hunter, remark);
         Self::_add_mining_power(&bounty, fee, &funder, &hunter);

@@ -126,6 +126,8 @@ decl_event!(
         Submit(BountyId),
         Resign(BountyId, AccountId),
         Resolve(BountyId),
+        FunderRemark(BountyId, BountyRemarkCollaborationResult),
+        HunterRemark(BountyId, BountyRemarkCollaborationResult),
     }
 );
 decl_storage! {
