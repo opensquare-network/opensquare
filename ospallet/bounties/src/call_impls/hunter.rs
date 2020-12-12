@@ -107,6 +107,7 @@ impl<T: Trait> Module<T> {
 
         // remove hunter
         Self::remove_hunters_for_bounty(bounty_id);
+        Self::deposit_event(RawEvent::HunterRemark(bounty_id, _remark));
 
         let bounty = Self::get_bounty(&bounty_id)?;
         let funder = Self::get_funder(&bounty);

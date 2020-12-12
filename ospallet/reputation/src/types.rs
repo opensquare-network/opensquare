@@ -10,7 +10,7 @@ pub enum BountyResolveCollaborationResult {
     Fail,
 }
 
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[derive(PartialEq, Eq, Copy, Clone, Encode, Decode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum BountyRemarkCollaborationResult {
     Bad,
