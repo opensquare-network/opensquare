@@ -1,3 +1,4 @@
+use hex_literal::hex;
 use sc_service::{ChainType, Properties};
 use serde_json::json;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -14,6 +15,10 @@ use opensquare_runtime::{
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+
+fn get_root_key() -> AccountId {
+    hex!["32c25010c0047d5e861b10f3fb2b4e3e08dfc75919f19795c376d3823648af72"].into()
+}
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig>;
@@ -67,13 +72,14 @@ pub fn development_config() -> Result<ChainSpec, String> {
                 // Initial PoA authorities
                 vec![authority_keys_from_seed("Alice")],
                 // Sudo account
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
+                get_root_key(),
                 // Pre-funded accounts
                 vec![
                     get_account_id_from_seed::<sr25519::Public>("Alice"),
                     get_account_id_from_seed::<sr25519::Public>("Bob"),
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+                    get_root_key(),
                 ],
             )
         },
@@ -108,7 +114,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
                     authority_keys_from_seed("Bob"),
                 ],
                 // Sudo account
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
+                get_root_key(),
                 // Pre-funded accounts
                 vec![
                     get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -123,6 +129,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
                     get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+                    get_root_key(),
                 ],
             )
         },
