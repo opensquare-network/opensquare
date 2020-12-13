@@ -148,13 +148,13 @@ impl<T: Trait> Module<T> {
 
         // trigger
         T::BountyResolved::after_bounty_resolved(&bounty);
-        Self::deposit_event(RawEvent::FunderRemark(bounty_id, remark));
 
         Self::_add_reputation(&hunter, remark);
         Self::_add_mining_power(&bounty, fee, &funder, &hunter);
 
         Self::change_state(bounty_id, BountyState::Resolved);
         Self::deposit_event(RawEvent::Resolve(bounty_id));
+        Self::deposit_event(RawEvent::FunderRemark(bounty_id, hunter, remark));
         // TODO maybe delete storage to save disk space
 
         Ok(())
