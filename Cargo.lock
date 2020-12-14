@@ -3262,6 +3262,7 @@ name = "opensquare-cli"
 version = "0.1.0"
 dependencies = [
  "futures 0.3.5",
+ "hex-literal",
  "log",
  "opensquare-primitives",
  "opensquare-rpc",
