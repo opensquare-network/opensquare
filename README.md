@@ -16,21 +16,25 @@ Users' reputation and skill proof will be built by their daily activities.
 this project need rust tool chain, install rust from this [link](https://www.rust-lang.org/learn/get-started)
 
 if you ensure rust tool chain is ready, do follow to init environment.
-1. init environment
+
+1. Dependencies installation
+
+Check [substrate.dev](https://substrate.dev/docs/en/knowledgebase/getting-started/) to install necessary dependencies.
+
+2. Init environment
     ```bash
     > git clone https://github.com/opensquare-network/opensquare.git
-    > git submodule update --init --recursive
     > cd opensquare/scripts
     > bash init.sh
     ```
-2. compile:
+3. Compile:
     ```bash
     > WASM_BUILD_TOOLCHAIN=nightly-2020-10-06 cargo build
     > # or we advice you to set `WASM_BUILD_TOOLCHAIN=nightly-2020-10-06` in your global environment variables, so that you do not need to put every time before `cargo`
     > # if you need build release type, do follow
     > WASM_BUILD_TOOLCHAIN=nightly-2020-10-06 cargo build --release
     ```
-3. run:
+4. Run:
 
 following parameters means:
 * `--dev`: means start with dev mode, would provide default private key to start the chain, and running a independent node.
